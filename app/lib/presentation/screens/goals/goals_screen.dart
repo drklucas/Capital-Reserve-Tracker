@@ -25,8 +25,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
       final authProvider = context.read<AppAuthProvider>();
       final goalProvider = context.read<GoalProvider>();
 
-      if (authProvider.currentUser != null) {
-        goalProvider.watchGoals(authProvider.currentUser!.id);
+      if (authProvider.user != null) {
+        goalProvider.watchGoals(authProvider.user!.id);
       }
     });
   }
@@ -66,8 +66,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
                   ElevatedButton.icon(
                     onPressed: () {
                       final authProvider = context.read<AppAuthProvider>();
-                      if (authProvider.currentUser != null) {
-                        goalProvider.loadGoals(authProvider.currentUser!.id);
+                      if (authProvider.user != null) {
+                        goalProvider.loadGoals(authProvider.user!.id);
                       }
                     },
                     icon: const Icon(Icons.refresh),
@@ -113,8 +113,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
           return RefreshIndicator(
             onRefresh: () async {
               final authProvider = context.read<AppAuthProvider>();
-              if (authProvider.currentUser != null) {
-                await goalProvider.loadGoals(authProvider.currentUser!.id);
+              if (authProvider.user != null) {
+                await goalProvider.loadGoals(authProvider.user!.id);
               }
             },
             child: Column(

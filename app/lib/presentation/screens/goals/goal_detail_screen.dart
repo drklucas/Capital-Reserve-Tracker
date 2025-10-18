@@ -39,8 +39,8 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     final authProvider = context.read<AppAuthProvider>();
     final goalProvider = context.read<GoalProvider>();
 
-    if (authProvider.currentUser != null) {
-      await goalProvider.loadGoalById(widget.goalId, authProvider.currentUser!.id);
+    if (authProvider.user != null) {
+      await goalProvider.loadGoalById(widget.goalId, authProvider.user!.id);
     }
   }
 
@@ -70,7 +70,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
 
       final success = await goalProvider.deleteGoal(
         widget.goalId,
-        authProvider.currentUser!.id,
+        authProvider.user!.id,
       );
 
       if (mounted) {
@@ -120,7 +120,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
 
       final success = await goalProvider.updateGoalEntityStatus(
         widget.goalId,
-        authProvider.currentUser!.id,
+        authProvider.user!.id,
         newStatus,
       );
 

@@ -151,8 +151,8 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
       final targetAmountInCents = (double.parse(cleanValue.replaceAll(',', '.')) * 100).toInt();
 
       final goal = GoalEntity(
-        id: widget.goal?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-        userId: authProvider.currentUser!.id,
+        id: widget.goal?.id ?? '', // Firestore will generate ID on create
+        userId: authProvider.user!.id,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         targetAmount: targetAmountInCents,

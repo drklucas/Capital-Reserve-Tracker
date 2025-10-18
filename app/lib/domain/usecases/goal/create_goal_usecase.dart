@@ -20,7 +20,7 @@ class CreateGoalUseCase {
     // Validate goal data
     final validation = _validateGoal(goal);
     if (validation != null) {
-      return Left(ValidationFailure(validation));
+      return Left(ValidationFailure(message: validation));
     }
 
     // Create the goal

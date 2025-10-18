@@ -17,11 +17,11 @@ class GetGoalByIdUseCase {
     String userId,
   ) async {
     if (goalId.isEmpty) {
-      return Left(ValidationFailure('ID da meta inválido'));
+      return Left(ValidationFailure(message: 'ID da meta inválido'));
     }
 
     if (userId.isEmpty) {
-      return Left(ValidationFailure('ID do usuário inválido'));
+      return Left(ValidationFailure(message: 'ID do usuário inválido'));
     }
 
     return await repository.getGoalById(goalId, userId);

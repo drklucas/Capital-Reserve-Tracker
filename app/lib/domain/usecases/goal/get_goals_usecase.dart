@@ -14,7 +14,7 @@ class GetGoalsUseCase {
   /// Returns [Right(List<GoalEntity>)] on success or [Left(Failure)] on error
   Future<Either<Failure, List<GoalEntity>>> call(String userId) async {
     if (userId.isEmpty) {
-      return Left(ValidationFailure('ID do usuário inválido'));
+      return Left(ValidationFailure(message: 'ID do usuário inválido'));
     }
 
     return await repository.getGoals(userId);

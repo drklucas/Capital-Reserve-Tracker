@@ -15,7 +15,7 @@ class WatchGoalsUseCase {
   /// or [Left(Failure)] on error
   Stream<Either<Failure, List<GoalEntity>>> call(String userId) {
     if (userId.isEmpty) {
-      return Stream.value(Left(ValidationFailure('ID do usuário inválido')));
+      return Stream.value(Left(ValidationFailure(message: 'ID do usuário inválido')));
     }
 
     return repository.watchGoals(userId);

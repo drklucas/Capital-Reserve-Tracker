@@ -21,7 +21,7 @@ class GoalRepositoryImpl implements GoalRepository {
       final createdModel = await remoteDataSource.createGoal(model);
       return Right(createdModel.toEntity());
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -32,7 +32,7 @@ class GoalRepositoryImpl implements GoalRepository {
       final updatedModel = await remoteDataSource.updateGoal(model);
       return Right(updatedModel.toEntity());
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -42,7 +42,7 @@ class GoalRepositoryImpl implements GoalRepository {
       await remoteDataSource.deleteGoal(goalId, userId);
       return const Right(null);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -55,7 +55,7 @@ class GoalRepositoryImpl implements GoalRepository {
       final model = await remoteDataSource.getGoalById(goalId, userId);
       return Right(model.toEntity());
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -66,7 +66,7 @@ class GoalRepositoryImpl implements GoalRepository {
       final entities = models.map((model) => model.toEntity()).toList();
       return Right(entities);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -79,7 +79,7 @@ class GoalRepositoryImpl implements GoalRepository {
       final entities = models.map((model) => model.toEntity()).toList();
       return Right(entities);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -92,7 +92,7 @@ class GoalRepositoryImpl implements GoalRepository {
       final entities = models.map((model) => model.toEntity()).toList();
       return Right(entities);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -105,7 +105,7 @@ class GoalRepositoryImpl implements GoalRepository {
             ),
           );
     } catch (e) {
-      return Stream.value(Left(ServerFailure(e.toString())));
+      return Stream.value(Left(ServerFailure(message: e.toString())));
     }
   }
 
@@ -119,7 +119,7 @@ class GoalRepositoryImpl implements GoalRepository {
             (model) => Right<Failure, GoalEntity>(model.toEntity()),
           );
     } catch (e) {
-      return Stream.value(Left(ServerFailure(e.toString())));
+      return Stream.value(Left(ServerFailure(message: e.toString())));
     }
   }
 
@@ -137,7 +137,7 @@ class GoalRepositoryImpl implements GoalRepository {
       );
       return Right(model.toEntity());
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -155,7 +155,7 @@ class GoalRepositoryImpl implements GoalRepository {
       );
       return const Right(null);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -173,7 +173,7 @@ class GoalRepositoryImpl implements GoalRepository {
       );
       return const Right(null);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -189,7 +189,7 @@ class GoalRepositoryImpl implements GoalRepository {
       );
       return Right(amount);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -207,7 +207,7 @@ class GoalRepositoryImpl implements GoalRepository {
       );
       return Right(model.toEntity());
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 }
