@@ -1,0 +1,191 @@
+[debug] [2025-10-18T17:00:05.514Z] ----------------------------------------------------------------------
+[debug] [2025-10-18T17:00:05.516Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\User\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js projects:list
+[debug] [2025-10-18T17:00:05.516Z] CLI Version:   14.12.1
+[debug] [2025-10-18T17:00:05.516Z] Platform:      win32
+[debug] [2025-10-18T17:00:05.516Z] Node Version:  v22.18.0
+[debug] [2025-10-18T17:00:05.516Z] Time:          Sat Oct 18 2025 14:00:05 GMT-0300 (Horário Padrão de Brasília)
+[debug] [2025-10-18T17:00:05.516Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-10-18T17:00:05.520Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-18T17:00:05.521Z] > authorizing via signed-in user (lucasnevesp3@gmail.com)
+[debug] [2025-10-18T17:00:05.523Z] Checked if tokens are valid: false, expires at: 1760805786528
+[debug] [2025-10-18T17:00:05.523Z] Checked if tokens are valid: false, expires at: 1760805786528
+[debug] [2025-10-18T17:00:05.523Z] > refreshing access token with scopes: []
+[debug] [2025-10-18T17:00:05.525Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-10-18T17:00:05.525Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-18T17:00:05.768Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-10-18T17:00:05.768Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-18T17:00:05.801Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2025-10-18T17:00:07.827Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2025-10-18T17:00:07.827Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[info] ┌──────────────────────┬────────────────────────────┬────────────────┬──────────────────────┐
+│ Project Display Name │ Project ID                 │ Project Number │ Resource Location ID │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ acontece-web         │ acontece-web               │ 749612075303   │ [Not specified]      │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ agenda-personalizada │ agenda-personalizada-9e6d5 │ 251535862149   │ us-central           │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ assettracker-63543   │ assettracker-63543         │ 626310664978   │ [Not specified]      │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ Clinica Agendamento  │ clinica-agendamento-2024   │ 1003388773203  │ [Not specified]      │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ crono-regente        │ crono-regente              │ 163991593012   │ [Not specified]      │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ denuncie-db          │ denuncie-db                │ 1042525362584  │ [Not specified]      │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ desafio-care-lucas   │ desafio-care-lucas         │ 801808014637   │ us-central           │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ Expofeira            │ expofeira-ecba9            │ 207008914266   │ [Not specified]      │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ expofeira            │ expofeira-efef1            │ 37755635854    │ [Not specified]      │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ gasway-v3            │ gasway-v3                  │ 878361391917   │ us-central           │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ Grower App           │ grower-app-project         │ 251427686065   │ [Not specified]      │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ kame-sushi-house     │ kame-sushi-house           │ 344540782436   │ [Not specified]      │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ mecanica-gicar       │ mecanica-gicar             │ 415378452321   │ [Not specified]      │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ Mente Clara          │ mente-clara-2025           │ 237986530725   │ [Not specified]      │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ mygoals              │ mygoals-19463              │ 764524226349   │ [Not specified]      │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ pokedex              │ pokedex-6e269              │ 20900964049    │ [Not specified]      │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ regente-app          │ regente-app                │ 945362382223   │ [Not specified]      │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ shop                 │ shop-3379d                 │ 1060575285574  │ [Not specified]      │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ shop2                │ shop2-6eba5                │ 229064836561   │ [Not specified]      │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ shopping             │ shopping-e2dfd             │ 596512061501   │ [Not specified]      │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ sportshop            │ sportshop-ae1f5            │ 514665585665   │ [Not specified]      │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ testedois            │ testedois-b6b67            │ 157229947795   │ [Not specified]      │
+├──────────────────────┼────────────────────────────┼────────────────┼──────────────────────┤
+│ testing              │ testing-2fac7              │ 955126399557   │ [Not specified]      │
+└──────────────────────┴────────────────────────────┴────────────────┴──────────────────────┘
+[info] 
+[info] 23 project(s) total.
+[debug] [2025-10-18T19:08:37.639Z] ----------------------------------------------------------------------
+[debug] [2025-10-18T19:08:37.640Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\User\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js use
+[debug] [2025-10-18T19:08:37.641Z] CLI Version:   14.12.1
+[debug] [2025-10-18T19:08:37.641Z] Platform:      win32
+[debug] [2025-10-18T19:08:37.641Z] Node Version:  v22.18.0
+[debug] [2025-10-18T19:08:37.641Z] Time:          Sat Oct 18 2025 16:08:37 GMT-0300 (Horário Padrão de Brasília)
+[debug] [2025-10-18T19:08:37.641Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-10-18T19:08:37.645Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-18T19:08:37.645Z] > authorizing via signed-in user (lucasnevesp3@gmail.com)
+[error] 
+[error] Error: firebase use must be run from a Firebase project directory.
+
+Run firebase init to start a project directory in the current folder.
+[debug] [2025-10-18T19:09:01.893Z] ----------------------------------------------------------------------
+[debug] [2025-10-18T19:09:01.895Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\User\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only firestore:rules
+[debug] [2025-10-18T19:09:01.895Z] CLI Version:   14.12.1
+[debug] [2025-10-18T19:09:01.895Z] Platform:      win32
+[debug] [2025-10-18T19:09:01.895Z] Node Version:  v22.18.0
+[debug] [2025-10-18T19:09:01.895Z] Time:          Sat Oct 18 2025 16:09:01 GMT-0300 (Horário Padrão de Brasília)
+[debug] [2025-10-18T19:09:01.895Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-10-18T19:09:02.017Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-18T19:09:02.018Z] > authorizing via signed-in user (lucasnevesp3@gmail.com)
+[debug] [2025-10-18T19:09:02.018Z] [iam] checking project mygoals-19463 for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]
+[debug] [2025-10-18T19:09:02.019Z] Checked if tokens are valid: false, expires at: 1760810404769
+[debug] [2025-10-18T19:09:02.019Z] Checked if tokens are valid: false, expires at: 1760810404769
+[debug] [2025-10-18T19:09:02.019Z] > refreshing access token with scopes: []
+[debug] [2025-10-18T19:09:02.021Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-10-18T19:09:02.021Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-18T19:09:02.269Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-10-18T19:09:02.269Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-18T19:09:02.281Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/mygoals-19463:testIamPermissions [none]
+[debug] [2025-10-18T19:09:02.281Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/mygoals-19463:testIamPermissions x-goog-quota-user=projects/mygoals-19463
+[debug] [2025-10-18T19:09:02.282Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/mygoals-19463:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2025-10-18T19:09:03.236Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/mygoals-19463:testIamPermissions 200
+[debug] [2025-10-18T19:09:03.237Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/mygoals-19463:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[info] 
+[info] === Deploying to 'mygoals-19463'...
+[info] 
+[info] i  deploying firestore 
+[info] i  firestore: reading indexes from firestore.indexes.json... 
+[info] i  cloud.firestore: checking firestore.rules for compilation errors... 
+[debug] [2025-10-18T19:09:03.241Z] Checked if tokens are valid: true, expires at: 1760818141269
+[debug] [2025-10-18T19:09:03.241Z] Checked if tokens are valid: true, expires at: 1760818141269
+[debug] [2025-10-18T19:09:03.241Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/mygoals-19463:test [none]
+[debug] [2025-10-18T19:09:03.242Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/mygoals-19463:test [omitted]
+[debug] [2025-10-18T19:09:04.508Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/mygoals-19463:test 200
+[debug] [2025-10-18T19:09:04.508Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/mygoals-19463:test {"issues":[{"sourcePosition":{"fileName":"firestore.rules","line":15,"column":31,"currentOffset":334,"endOffset":342},"description":"timestamp is a package and cannot be used as variable name.","severity":"ERROR"},{"sourcePosition":{"fileName":"firestore.rules","line":16,"column":14,"currentOffset":361,"endOffset":369},"description":"timestamp is a package and cannot be used as variable name.","severity":"ERROR"}]}
+[error] 
+[error] Error: Compilation errors in firestore.rules:
+[E] 15:31 - timestamp is a package and cannot be used as variable name.
+[E] 16:14 - timestamp is a package and cannot be used as variable name.
+[debug] [2025-10-18T19:09:24.372Z] ----------------------------------------------------------------------
+[debug] [2025-10-18T19:09:24.373Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\User\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only firestore:rules
+[debug] [2025-10-18T19:09:24.374Z] CLI Version:   14.12.1
+[debug] [2025-10-18T19:09:24.374Z] Platform:      win32
+[debug] [2025-10-18T19:09:24.374Z] Node Version:  v22.18.0
+[debug] [2025-10-18T19:09:24.374Z] Time:          Sat Oct 18 2025 16:09:24 GMT-0300 (Horário Padrão de Brasília)
+[debug] [2025-10-18T19:09:24.374Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-10-18T19:09:24.490Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-18T19:09:24.491Z] > authorizing via signed-in user (lucasnevesp3@gmail.com)
+[debug] [2025-10-18T19:09:24.491Z] [iam] checking project mygoals-19463 for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]
+[debug] [2025-10-18T19:09:24.492Z] Checked if tokens are valid: true, expires at: 1760818141269
+[debug] [2025-10-18T19:09:24.492Z] Checked if tokens are valid: true, expires at: 1760818141269
+[debug] [2025-10-18T19:09:24.492Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/mygoals-19463:testIamPermissions [none]
+[debug] [2025-10-18T19:09:24.492Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/mygoals-19463:testIamPermissions x-goog-quota-user=projects/mygoals-19463
+[debug] [2025-10-18T19:09:24.492Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/mygoals-19463:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2025-10-18T19:09:25.391Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/mygoals-19463:testIamPermissions 200
+[debug] [2025-10-18T19:09:25.391Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/mygoals-19463:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[info] 
+[info] === Deploying to 'mygoals-19463'...
+[info] 
+[info] i  deploying firestore 
+[info] i  firestore: reading indexes from firestore.indexes.json... 
+[info] i  cloud.firestore: checking firestore.rules for compilation errors... 
+[debug] [2025-10-18T19:09:25.393Z] Checked if tokens are valid: true, expires at: 1760818141269
+[debug] [2025-10-18T19:09:25.393Z] Checked if tokens are valid: true, expires at: 1760818141269
+[debug] [2025-10-18T19:09:25.394Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/mygoals-19463:test [none]
+[debug] [2025-10-18T19:09:25.394Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/mygoals-19463:test [omitted]
+[debug] [2025-10-18T19:09:26.617Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/mygoals-19463:test 200
+[debug] [2025-10-18T19:09:26.618Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/mygoals-19463:test {}
+[info] +  cloud.firestore: rules file firestore.rules compiled successfully 
+[debug] [2025-10-18T19:09:26.619Z] Checked if tokens are valid: true, expires at: 1760818141269
+[debug] [2025-10-18T19:09:26.619Z] Checked if tokens are valid: true, expires at: 1760818141269
+[debug] [2025-10-18T19:09:26.619Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/mygoals-19463/databases/(default) [none]
+[debug] [2025-10-18T19:09:26.918Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/mygoals-19463/databases/(default) 200
+[debug] [2025-10-18T19:09:26.918Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/mygoals-19463/databases/(default) {"name":"projects/mygoals-19463/databases/(default)","uid":"6c3735f6-eaa7-4050-9cf0-230f2d8908d4","createTime":"2025-10-18T15:41:03.341850Z","updateTime":"2025-10-18T15:41:03.341850Z","locationId":"southamerica-east1","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2025-10-18T18:08:02.701190Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"i","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"IN7yho65rpADMLSCwLK3rpAD"}
+[debug] [2025-10-18T19:09:26.921Z] Checked if tokens are valid: true, expires at: 1760818141269
+[debug] [2025-10-18T19:09:26.921Z] Checked if tokens are valid: true, expires at: 1760818141269
+[debug] [2025-10-18T19:09:26.921Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/mygoals-19463/releases pageSize=10&pageToken=
+[debug] [2025-10-18T19:09:28.008Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/mygoals-19463/releases 200
+[debug] [2025-10-18T19:09:28.008Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/mygoals-19463/releases {"releases":[{"name":"projects/mygoals-19463/releases/cloud.firestore","rulesetName":"projects/mygoals-19463/rulesets/dca9edbb-dee0-4c06-aec8-1ba60bf27a62","createTime":"2025-10-18T15:41:10.972036Z","updateTime":"2025-10-18T15:41:10.972036Z"}]}
+[debug] [2025-10-18T19:09:28.009Z] Checked if tokens are valid: true, expires at: 1760818141269
+[debug] [2025-10-18T19:09:28.009Z] Checked if tokens are valid: true, expires at: 1760818141269
+[debug] [2025-10-18T19:09:28.009Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/mygoals-19463/rulesets/dca9edbb-dee0-4c06-aec8-1ba60bf27a62 [none]
+[debug] [2025-10-18T19:09:28.968Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/mygoals-19463/rulesets/dca9edbb-dee0-4c06-aec8-1ba60bf27a62 200
+[debug] [2025-10-18T19:09:28.968Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/mygoals-19463/rulesets/dca9edbb-dee0-4c06-aec8-1ba60bf27a62 [omitted]
+[info] i  firestore: uploading rules firestore.rules... 
+[debug] [2025-10-18T19:09:28.969Z] Checked if tokens are valid: true, expires at: 1760818141269
+[debug] [2025-10-18T19:09:28.969Z] Checked if tokens are valid: true, expires at: 1760818141269
+[debug] [2025-10-18T19:09:28.970Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/mygoals-19463/rulesets [none]
+[debug] [2025-10-18T19:09:28.970Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/mygoals-19463/rulesets [omitted]
+[debug] [2025-10-18T19:09:29.520Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/mygoals-19463/rulesets 200
+[debug] [2025-10-18T19:09:29.520Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/mygoals-19463/rulesets {"name":"projects/mygoals-19463/rulesets/2d5f4ad1-4a47-4c82-9387-d6a573d72cb5","source":{"files":[{"content":"rules_version = '2';\r\n\r\nservice cloud.firestore {\r\n  match /databases/{database}/documents {\r\n\r\n    // Helper functions\r\n    function isAuthenticated() {\r\n      return request.auth != null;\r\n    }\r\n\r\n    function isOwner(userId) {\r\n      return isAuthenticated() && request.auth.uid == userId;\r\n    }\r\n\r\n    function isValidTimestamp(value) {\r\n      return value is timestamp;\r\n    }\r\n\r\n    function isValidString(value, minLength, maxLength) {\r\n      return value is string\r\n        && value.size() >= minLength\r\n        && value.size() <= maxLength;\r\n    }\r\n\r\n    function isValidNumber(value, min, max) {\r\n      return value is number\r\n        && value >= min\r\n        && value <= max;\r\n    }\r\n\r\n    // Users collection\r\n    match /users/{userId} {\r\n      // Allow read/write only if user is authenticated and owns the document\r\n      allow read: if isOwner(userId);\r\n      allow create: if isAuthenticated() && request.auth.uid == userId;\r\n      allow update: if isOwner(userId);\r\n      allow delete: if isOwner(userId);\r\n\r\n      // Transactions subcollection\r\n      match /transactions/{transactionId} {\r\n        // Allow read if user owns the parent user document\r\n        allow read: if isOwner(userId);\r\n\r\n        // Allow create with validation\r\n        allow create: if isOwner(userId)\r\n          && isOwner(request.resource.data.userId)\r\n          && isValidString(request.resource.data.description, 1, 500)\r\n          && isValidNumber(request.resource.data.amount, 0.01, 999999999)\r\n          && request.resource.data.type in ['income', 'expense']\r\n          && request.resource.data.category in [\r\n            // Income categories\r\n            'salary', 'bonus', 'investment', 'freelance', 'gift', 'other',\r\n            // Expense categories\r\n            'food', 'transport', 'housing', 'utilities', 'entertainment',\r\n            'healthcare', 'education', 'shopping', 'savings'\r\n          ]\r\n          && isValidTimestamp(request.resource.data.date)\r\n          && isValidTimestamp(request.resource.data.createdAt)\r\n          && request.resource.data.userId == userId;\r\n\r\n        // Allow update with validation\r\n        allow update: if isOwner(userId)\r\n          && isOwner(resource.data.userId)\r\n          && isOwner(request.resource.data.userId)\r\n          && isValidString(request.resource.data.description, 1, 500)\r\n          && isValidNumber(request.resource.data.amount, 0.01, 999999999)\r\n          && request.resource.data.type in ['income', 'expense']\r\n          && request.resource.data.category in [\r\n            'salary', 'bonus', 'investment', 'freelance', 'gift', 'other',\r\n            'food', 'transport', 'housing', 'utilities', 'entertainment',\r\n            'healthcare', 'education', 'shopping', 'savings'\r\n          ]\r\n          && isValidTimestamp(request.resource.data.date)\r\n          && request.resource.data.userId == userId\r\n          && request.resource.data.userId == resource.data.userId; // Cannot change userId\r\n\r\n        // Allow delete if user owns the transaction\r\n        allow delete: if isOwner(userId) && isOwner(resource.data.userId);\r\n      }\r\n\r\n      // Goals subcollection (for future implementation)\r\n      match /goals/{goalId} {\r\n        allow read: if isOwner(userId);\r\n\r\n        allow create: if isOwner(userId)\r\n          && isOwner(request.resource.data.userId)\r\n          && isValidString(request.resource.data.title, 1, 200)\r\n          && isValidNumber(request.resource.data.targetAmount, 0, 999999999)\r\n          && request.resource.data.userId == userId;\r\n\r\n        allow update: if isOwner(userId)\r\n          && isOwner(resource.data.userId)\r\n          && request.resource.data.userId == userId\r\n          && request.resource.data.userId == resource.data.userId;\r\n\r\n        allow delete: if isOwner(userId) && isOwner(resource.data.userId);\r\n      }\r\n\r\n      // Tasks subcollection (for future implementation)\r\n      match /tasks/{taskId} {\r\n        allow read: if isOwner(userId);\r\n\r\n        allow create: if isOwner(userId)\r\n          && isOwner(request.resource.data.userId)\r\n          && isValidString(request.resource.data.title, 1, 200)\r\n          && request.resource.data.userId == userId;\r\n\r\n        allow update: if isOwner(userId)\r\n          && isOwner(resource.data.userId)\r\n          && request.resource.data.userId == userId\r\n          && request.resource.data.userId == resource.data.userId;\r\n\r\n        allow delete: if isOwner(userId) && isOwner(resource.data.userId);\r\n      }\r\n    }\r\n\r\n    // Deny all other access\r\n    match /{document=**} {\r\n      allow read, write: if false;\r\n    }\r\n  }\r\n}\r\n","name":"firestore.rules"}]},"createTime":"2025-10-18T19:08:05.172095Z","metadata":{"services":["cloud.firestore"]}}
+[debug] [2025-10-18T19:09:29.520Z] [rules] created ruleset projects/mygoals-19463/rulesets/2d5f4ad1-4a47-4c82-9387-d6a573d72cb5
+[debug] [2025-10-18T19:09:29.521Z] [rules] releasing cloud.firestore/(default) with ruleset projects/mygoals-19463/rulesets/2d5f4ad1-4a47-4c82-9387-d6a573d72cb5
+[debug] [2025-10-18T19:09:29.521Z] Checked if tokens are valid: true, expires at: 1760818141269
+[debug] [2025-10-18T19:09:29.521Z] Checked if tokens are valid: true, expires at: 1760818141269
+[debug] [2025-10-18T19:09:29.521Z] >>> [apiv2][query] PATCH https://firebaserules.googleapis.com/v1/projects/mygoals-19463/releases/cloud.firestore/(default) [none]
+[debug] [2025-10-18T19:09:29.521Z] >>> [apiv2][body] PATCH https://firebaserules.googleapis.com/v1/projects/mygoals-19463/releases/cloud.firestore/(default) {"release":{"name":"projects/mygoals-19463/releases/cloud.firestore/(default)","rulesetName":"projects/mygoals-19463/rulesets/2d5f4ad1-4a47-4c82-9387-d6a573d72cb5"}}
+[debug] [2025-10-18T19:09:29.890Z] <<< [apiv2][status] PATCH https://firebaserules.googleapis.com/v1/projects/mygoals-19463/releases/cloud.firestore/(default) 200
+[debug] [2025-10-18T19:09:29.891Z] <<< [apiv2][body] PATCH https://firebaserules.googleapis.com/v1/projects/mygoals-19463/releases/cloud.firestore/(default) {"name":"projects/mygoals-19463/releases/cloud.firestore","rulesetName":"projects/mygoals-19463/rulesets/2d5f4ad1-4a47-4c82-9387-d6a573d72cb5","createTime":"2025-10-18T15:41:10.972036Z","updateTime":"2025-10-18T19:08:05.545397Z"}
+[debug] [2025-10-18T19:09:29.891Z] [rules] updated release projects/mygoals-19463/releases/cloud.firestore
+[info] +  firestore: released rules firestore.rules to cloud.firestore 
+[info] 
+[info] +  Deploy complete! 
+[info] 
+[info] Project Console: https://console.firebase.google.com/project/mygoals-19463/overview

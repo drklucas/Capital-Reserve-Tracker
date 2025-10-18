@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter:*)",
+      "Bash(C:flutter_3_35_6flutterbinflutter --version)",
+      "Bash(\"C:\\flutter_3_35_6\\flutter\\bin\\flutter\" --version)",
+      "Bash(taskkill:*)",
+      "Bash(firebase --version)",
+      "Bash(firebase projects:list:*)",
+      "Bash(firebase:*)",
+      "Read(//c/Users/User/Desktop/Proj Pessoais/my_goals/**)",
+      "Bash(cat:*)",
+      "Bash(flutterfire configure:*)",
+      "Bash(\"C:\\Users\\User\\AppData\\Local\\Pub\\Cache\\bin\\flutterfire.bat\" configure --project=mygoals-19463 --yes --platforms=android,ios,web --out=lib/firebase_options.dart)",
+      "Bash(./gradlew:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

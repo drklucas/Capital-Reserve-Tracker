@@ -1,0 +1,138 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidTimestamp(value) {
+      return value is timestamp;
+    }
+
+    function isValidString(value, minLength, maxLength) {
+      return value is string
+        && value.size() >= minLength
+        && value.size() <= maxLength;
+    }
+
+    function isValidNumber(value, min, max) {
+      return value is number
+        && value >= min
+        && value <= max;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Allow read/write only if user is authenticated and owns the document
+      allow read: if isOwner(userId);
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+
+      // Transactions subcollection
+      match /transactions/{transactionId} {
+        // Allow read if user owns the parent user document
+        allow read: if isOwner(userId);
+
+        // Allow create with validation
+        allow create: if isOwner(userId)
+          && isOwner(request.resource.data.userId)
+          && isValidString(request.resource.data.description, 1, 500)
+          && isValidNumber(request.resource.data.amount, 0.01, 999999999)
+          && request.resource.data.type in ['income', 'expense']
+          && request.resource.data.category in [
+            // Income categories
+            'salary', 'bonus', 'investment', 'freelance', 'gift', 'other',
+            // Expense categories
+            'food', 'transport', 'housing', 'utilities', 'entertainment',
+            'healthcare', 'education', 'shopping', 'savings'
+          ]
+          && isValidTimestamp(request.resource.data.date)
+          && isValidTimestamp(request.resource.data.createdAt)
+          && request.resource.data.userId == userId;
+
+        // Allow update with validation
+        allow update: if isOwner(userId)
+          && isOwner(resource.data.userId)
+          && isOwner(request.resource.data.userId)
+          && isValidString(request.resource.data.description, 1, 500)
+          && isValidNumber(request.resource.data.amount, 0.01, 999999999)
+          && request.resource.data.type in ['income', 'expense']
+          && request.resource.data.category in [
+            'salary', 'bonus', 'investment', 'freelance', 'gift', 'other',
+            'food', 'transport', 'housing', 'utilities', 'entertainment',
+            'healthcare', 'education', 'shopping', 'savings'
+          ]
+          && isValidTimestamp(request.resource.data.date)
+          && request.resource.data.userId == userId
+          && request.resource.data.userId == resource.data.userId; // Cannot change userId
+
+        // Allow delete if user owns the transaction
+        allow delete: if isOwner(userId) && isOwner(resource.data.userId);
+      }
+
+      // Goals subcollection
+      match /goals/{goalId} {
+        allow read: if isOwner(userId);
+
+        allow create: if isOwner(userId)
+          && isOwner(request.resource.data.userId)
+          && isValidString(request.resource.data.title, 1, 100)
+          && isValidString(request.resource.data.description, 0, 500)
+          && request.resource.data.targetAmount is int
+          && request.resource.data.targetAmount > 0
+          && request.resource.data.currentAmount is int
+          && request.resource.data.currentAmount >= 0
+          && isValidTimestamp(request.resource.data.startDate)
+          && isValidTimestamp(request.resource.data.targetDate)
+          && request.resource.data.status in ['active', 'completed', 'paused', 'cancelled']
+          && request.resource.data.associatedTransactionIds is list
+          && isValidTimestamp(request.resource.data.createdAt)
+          && request.resource.data.userId == userId;
+
+        allow update: if isOwner(userId)
+          && isOwner(resource.data.userId)
+          && isValidString(request.resource.data.title, 1, 100)
+          && isValidString(request.resource.data.description, 0, 500)
+          && request.resource.data.targetAmount is int
+          && request.resource.data.targetAmount > 0
+          && request.resource.data.currentAmount is int
+          && request.resource.data.currentAmount >= 0
+          && request.resource.data.status in ['active', 'completed', 'paused', 'cancelled']
+          && request.resource.data.userId == userId
+          && request.resource.data.userId == resource.data.userId;
+
+        allow delete: if isOwner(userId) && isOwner(resource.data.userId);
+      }
+
+      // Tasks subcollection (for future implementation)
+      match /tasks/{taskId} {
+        allow read: if isOwner(userId);
+
+        allow create: if isOwner(userId)
+          && isOwner(request.resource.data.userId)
+          && isValidString(request.resource.data.title, 1, 200)
+          && request.resource.data.userId == userId;
+
+        allow update: if isOwner(userId)
+          && isOwner(resource.data.userId)
+          && request.resource.data.userId == userId
+          && request.resource.data.userId == resource.data.userId;
+
+        allow delete: if isOwner(userId) && isOwner(resource.data.userId);
+      }
+    }
+
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
