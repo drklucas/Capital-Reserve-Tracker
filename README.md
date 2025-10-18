@@ -60,9 +60,14 @@ For detailed architecture information, see [Architecture Documentation](docs/arc
    ```
 
 2. **Set up Firebase**
-   - Create a Firebase project or use existing: `mygoals-19463`
-   - Download configuration files (google-services.json, GoogleService-Info.plist)
-   - Place them in the appropriate directories (see [Setup Guide](docs/setup.md))
+   - Create a Firebase project at https://console.firebase.google.com
+   - Run FlutterFire CLI to configure:
+     ```bash
+     cd app
+     flutterfire configure --project=your-project-id
+     ```
+   - This will generate `firebase_options.dart` (not committed to git)
+   - Alternatively, copy `lib/firebase_options.dart.example` to `lib/firebase_options.dart` and add your credentials
 
 3. **Configure environment variables**
    ```bash

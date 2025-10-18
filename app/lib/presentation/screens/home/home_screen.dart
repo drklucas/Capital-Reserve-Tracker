@@ -135,10 +135,7 @@ class HomeScreen extends StatelessWidget {
                       children: [
                         const Text(
                           'Sabbatical Year Goal',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
+                          style: TextStyle(color: Colors.white70, fontSize: 14),
                         ),
                         const SizedBox(height: 8),
                         const Text(
@@ -240,8 +237,9 @@ class HomeScreen extends StatelessWidget {
                         },
                       ),
                     ),
-                  ),
+                  ],
                 ),
+
                 const SizedBox(height: 24),
 
                 // Recent Activity
@@ -321,24 +319,15 @@ class _QuickActionCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: color.withOpacity(0.3),
-          ),
+          border: Border.all(color: color.withOpacity(0.3)),
         ),
         child: Column(
           children: [
-            Icon(
-              icon,
-              color: color,
-              size: 32,
-            ),
+            Icon(icon, color: color, size: 32),
             const SizedBox(height: 8),
             Text(
               title,
-              style: TextStyle(
-                color: color,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(color: color, fontWeight: FontWeight.w600),
             ),
           ],
         ),

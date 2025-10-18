@@ -13,7 +13,9 @@
       "Bash(flutterfire configure:*)",
       "Bash(\"C:\\Users\\User\\AppData\\Local\\Pub\\Cache\\bin\\flutterfire.bat\" configure --project=mygoals-19463 --yes --platforms=android,ios,web --out=lib/firebase_options.dart)",
       "Bash(./gradlew:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: implement goal management system (Sprint 2)\n\nImplemented complete goal management system following Clean Architecture:\n\nDomain Layer:\n- GoalEntity with business logic (progress, remaining amount, days calculation)\n- GoalRepository interface with 14 methods\n- 7 use cases: Create, Update, Delete, Get, GetById, Watch, UpdateStatus\n- GoalStatus enum (active, completed, paused, cancelled)\n\nData Layer:\n- GoalModel with Firestore and JSON serialization\n- GoalRemoteDataSource with CRUD and real-time streams\n- GoalRepositoryImpl with error handling and Either pattern\n- Transaction association and amount calculation\n\nPresentation Layer:\n- GoalProvider with state management and filtering\n- GoalsScreen with real-time updates and progress tracking\n- Add/Edit Goal screens (generated, needs refactoring)\n- Goal Detail screen (generated, needs refactoring)\n- Navigation integration in HomeScreen\n\nInfrastructure:\n- Updated main.dart with 7 goal providers\n- Enhanced Firebase Security Rules for goals\n- Updated .gitignore (removed firebase_options.dart)\n- Updated home screen with goals navigation\n\nBuild:\n- Successfully built APK (49MB)\n- Sprint 2 Progress: ~65% complete\n\nFiles: 28+ files created/modified (~3500+ lines)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

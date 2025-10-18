@@ -55,6 +55,7 @@ env.dart
 # Firebase credentials - NEVER COMMIT
 google-services.json
 GoogleService-Info.plist
+firebase_options.dart
 .firebaserc
 
 # API Keys and tokens
