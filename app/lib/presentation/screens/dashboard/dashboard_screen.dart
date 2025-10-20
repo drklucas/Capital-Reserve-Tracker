@@ -42,12 +42,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       // Watch transactions (real-time updates)
       context.read<TransactionProvider>().watchTransactions(userId: userId);
 
-      // Update dashboard with current data
+      // Update dashboard with current data (will watch tasks automatically)
       _updateDashboardProviders();
     }
   }
 
   void _updateDashboardProviders() {
+    final authProvider = context.read<AppAuthProvider>();
     final goalProvider = context.read<GoalProvider>();
     final transactionProvider = context.read<TransactionProvider>();
     final taskProvider = context.read<TaskProvider>();
@@ -55,6 +56,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     dashboardProvider.updateGoals(goalProvider.goals);
     dashboardProvider.updateTransactions(transactionProvider.transactions);
+
+    // Watch tasks for goals that don't have tasks loaded yet
+    if (authProvider.user != null) {
+      for (var goal in goalProvider.goals) {
+        final hasTasksForGoal = taskProvider.tasks.any((t) => t.goalId == goal.id);
+        if (!hasTasksForGoal) {
+          taskProvider.watchTasksByGoal(
+            userId: authProvider.user!.id,
+            goalId: goal.id,
+          );
+        }
+      }
+    }
 
     // Build tasks map by goal
     final tasksByGoal = <String, List<TaskEntity>>{};
