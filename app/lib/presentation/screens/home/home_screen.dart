@@ -56,12 +56,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     // Load data
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final authProvider = context.read<AppAuthProvider>();
-      if (authProvider.user != null) {
-        context.read<GoalProvider>().watchGoals(authProvider.user!.id);
-        context.read<TransactionProvider>().watchTransactions(userId: authProvider.user!.id);
-      }
+      _loadUserData();
     });
+  }
+
+  void _loadUserData() {
+    final authProvider = context.read<AppAuthProvider>();
+    if (authProvider.user != null) {
+      debugPrint('HomeScreen: Loading data for user ${authProvider.user!.id}');
+      context.read<GoalProvider>().watchGoals(authProvider.user!.id);
+      context.read<TransactionProvider>().watchTransactions(userId: authProvider.user!.id);
+    } else {
+      debugPrint('HomeScreen: User is null, waiting for auth...');
+      // Try again after a short delay if user is not ready yet
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          _loadUserData();
+        }
+      });
+    }
   }
 
   @override

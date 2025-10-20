@@ -21,12 +21,6 @@ class GoalDetailScreen extends StatefulWidget {
 }
 
 class _GoalDetailScreenState extends State<GoalDetailScreen> {
-  final NumberFormat _currencyFormat = NumberFormat.currency(
-    locale: 'pt_BR',
-    symbol: 'R\$',
-    decimalDigits: 2,
-  );
-
   final DateFormat _dateFormat = DateFormat('dd/MM/yyyy', 'pt_BR');
 
   @override
@@ -44,7 +38,6 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
 
     if (authProvider.user != null) {
       await goalProvider.loadGoalById(widget.goalId, authProvider.user!.id);
-      // Watch tasks in real-time for this goal
       taskProvider.watchTasksByGoal(
         goalId: widget.goalId,
         userId: authProvider.user!.id,
@@ -56,16 +49,26 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirmar Exclusão'),
-        content: const Text('Tem certeza que deseja excluir esta meta?'),
+        backgroundColor: const Color(0xFF2d3561),
+        title: const Text(
+          'Confirmar Exclusão',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'Tem certeza que deseja excluir esta meta?',
+          style: TextStyle(color: Colors.white70),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.white70)),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
             child: const Text('Excluir'),
           ),
         ],
@@ -109,7 +112,11 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     final newStatus = await showDialog<GoalStatus>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Alterar Status'),
+        backgroundColor: const Color(0xFF2d3561),
+        title: const Text(
+          'Alterar Status',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -153,11 +160,10 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     }
   }
 
-  /// Show dialog to add a new task
   Future<void> _showAddTaskDialog() async {
     final result = await showDialog<Map<String, String>?>(
       context: context,
-      builder: (context) => _AddTaskDialog(),
+      builder: (context) => const _AddTaskDialog(),
     );
 
     if (result != null && mounted) {
@@ -186,7 +192,6 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     }
   }
 
-  /// Toggle task completion status
   Future<void> _toggleTask(TaskEntity task) async {
     final authProvider = context.read<AppAuthProvider>();
     final taskProvider = context.read<TaskProvider>();
@@ -194,23 +199,24 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     await taskProvider.toggleTask(task.id, authProvider.user!.id);
   }
 
-  /// Delete a task
   Future<void> _deleteTask(TaskEntity task) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Excluir Tarefa'),
-        content: Text('Deseja realmente excluir "${task.title}"?'),
+        backgroundColor: const Color(0xFF2d3561),
+        title: const Text('Excluir Tarefa', style: TextStyle(color: Colors.white)),
+        content: Text(
+          'Deseja realmente excluir "${task.title}"?',
+          style: const TextStyle(color: Colors.white70),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.white70)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Excluir'),
           ),
         ],
@@ -241,12 +247,10 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     }
   }
 
-  /// Reorder tasks
   Future<void> _reorderTasks(int oldIndex, int newIndex) async {
     final authProvider = context.read<AppAuthProvider>();
     final taskProvider = context.read<TaskProvider>();
 
-    // Adjust newIndex if needed (Flutter's ReorderableListView quirk)
     if (newIndex > oldIndex) {
       newIndex -= 1;
     }
@@ -260,7 +264,10 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
 
   Widget _buildStatusOption(GoalStatus status) {
     return ListTile(
-      title: Text(status.displayName),
+      title: Text(
+        status.displayName,
+        style: const TextStyle(color: Colors.white),
+      ),
       onTap: () => Navigator.pop(context, status),
     );
   }
@@ -268,8 +275,19 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Detalhes da Meta'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text(
+          'Detalhes da Meta',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+            color: Colors.white,
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           Consumer<GoalProvider>(
             builder: (context, goalProvider, _) {
@@ -277,6 +295,15 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               if (goal == null) return const SizedBox.shrink();
 
               return PopupMenuButton<String>(
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.more_vert, size: 20, color: Colors.white),
+                ),
+                color: const Color(0xFF2d3561),
                 onSelected: (value) {
                   switch (value) {
                     case 'edit':
@@ -300,9 +327,9 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                     value: 'edit',
                     child: Row(
                       children: [
-                        Icon(Icons.edit),
+                        Icon(Icons.edit, color: Colors.white70),
                         SizedBox(width: 8),
-                        Text('Editar'),
+                        Text('Editar', style: TextStyle(color: Colors.white)),
                       ],
                     ),
                   ),
@@ -310,9 +337,9 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                     value: 'status',
                     child: Row(
                       children: [
-                        Icon(Icons.change_circle),
+                        Icon(Icons.change_circle, color: Colors.white70),
                         SizedBox(width: 8),
-                        Text('Alterar Status'),
+                        Text('Alterar Status', style: TextStyle(color: Colors.white)),
                       ],
                     ),
                   ),
@@ -330,405 +357,542 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               );
             },
           ),
+          const SizedBox(width: 8),
         ],
       ),
-      body: Consumer<GoalProvider>(
-        builder: (context, goalProvider, _) {
-          if (goalProvider.status == GoalProviderStatus.loading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: Stack(
+        children: [
+          // Gradient Background
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF1a1a2e),
+                  Color(0xFF16213e),
+                  Color(0xFF0f3460),
+                ],
+                stops: [0.0, 0.5, 1.0],
+              ),
+            ),
+          ),
+          // Content
+          SafeArea(
+            child: Consumer<GoalProvider>(
+              builder: (context, goalProvider, _) {
+                if (goalProvider.status == GoalProviderStatus.loading) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  );
+                }
 
-          if (goalProvider.status == GoalProviderStatus.error) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    goalProvider.errorMessage ?? 'Erro ao carregar meta',
-                    textAlign: TextAlign.center,
+                if (goalProvider.status == GoalProviderStatus.error) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline, size: 64, color: Colors.white70),
+                        const SizedBox(height: 16),
+                        Text(
+                          goalProvider.errorMessage ?? 'Erro ao carregar meta',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: _loadGoalDetails,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Tentar Novamente'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white.withOpacity(0.2),
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                final goal = goalProvider.selectedGoal;
+                if (goal == null) {
+                  return const Center(
+                    child: Text(
+                      'Meta não encontrada',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  );
+                }
+
+                return RefreshIndicator(
+                  onRefresh: _loadGoalDetails,
+                  color: const Color(0xFF3B82F6),
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 20),
+
+                          // Title and Status Card
+                          _buildHeaderCard(goal),
+
+                          const SizedBox(height: 16),
+
+                          // Progress Card
+                          _buildProgressCard(),
+
+                          const SizedBox(height: 16),
+
+                          // Stats Card
+                          _buildStatsCard(goal),
+
+                          const SizedBox(height: 16),
+
+                          // Tasks Card
+                          _buildTasksCard(),
+
+                          const SizedBox(height: 80),
+                        ],
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    onPressed: _loadGoalDetails,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Tentar Novamente'),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF10B981), Color(0xFF059669)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF10B981).withOpacity(0.4),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          onPressed: _showAddTaskDialog,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          icon: const Icon(Icons.add_task, color: Colors.white),
+          label: const Text(
+            'Nova Tarefa',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderCard(GoalEntity goal) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF5A67D8),
+            Color(0xFF6B46C1),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF5A67D8).withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  goal.title,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              _buildStatusChip(goal.status),
+            ],
+          ),
+          if (goal.description.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              goal.description,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.white.withOpacity(0.9),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressCard() {
+    return Consumer<TaskProvider>(
+      builder: (context, taskProvider, _) {
+        final totalTasks = taskProvider.taskCount;
+        final completedTasks = taskProvider.completedCount;
+        final progress = totalTasks > 0 ? (completedTasks / totalTasks * 100) : 0.0;
+
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF2d3561),
+                Color(0xFF1f2544),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Progresso das Tarefas',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '$completedTasks de $totalTasks tarefas',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF3B82F6),
+                    ),
+                  ),
+                  Text(
+                    '${progress.toStringAsFixed(0)}%',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ],
               ),
-            );
-          }
-
-          final goal = goalProvider.selectedGoal;
-          if (goal == null) {
-            return const Center(child: Text('Meta não encontrada'));
-          }
-
-          return RefreshIndicator(
-            onRefresh: _loadGoalDetails,
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                // Title and Status
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        goal.title,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    _buildStatusChip(goal.status),
-                  ],
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: LinearProgressIndicator(
+                  value: progress / 100,
+                  minHeight: 12,
+                  backgroundColor: Colors.white.withOpacity(0.2),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    progress >= 100 ? Colors.green : const Color(0xFF3B82F6),
+                  ),
                 ),
-                if (goal.description.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    goal.description,
+              ),
+              if (totalTasks == 0) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'Adicione tarefas para acompanhar o progresso',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.7),
+                    fontSize: 14,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatsCard(GoalEntity goal) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF2d3561),
+            Color(0xFF1f2544),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Estatísticas',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 20),
+          _buildStatRow(
+            'Período',
+            '${_dateFormat.format(goal.startDate)} - ${_dateFormat.format(goal.targetDate)}',
+            Icons.date_range,
+          ),
+          const SizedBox(height: 16),
+          _buildStatRow(
+            goal.isOverdue ? 'Prazo expirado' : 'Dias restantes',
+            goal.isOverdue
+                ? 'há ${DateTime.now().difference(goal.targetDate).inDays} dias'
+                : '${goal.daysRemaining} dias',
+            Icons.calendar_today,
+            isWarning: goal.isOverdue,
+          ),
+          const SizedBox(height: 16),
+          _buildStatRow(
+            'Dias decorridos',
+            '${goal.daysElapsed} de ${goal.totalDays} dias',
+            Icons.access_time,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatRow(
+    String label,
+    String value,
+    IconData icon, {
+    bool isWarning = false,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: (isWarning ? Colors.red : Colors.blue).withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: (isWarning ? Colors.red : Colors.blue).withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: isWarning ? Colors.red : Colors.blue,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.7),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: isWarning ? Colors.red : Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTasksCard() {
+    return Consumer<TaskProvider>(
+      builder: (context, taskProvider, _) {
+        final tasks = taskProvider.tasks;
+        final completedCount = taskProvider.completedCount;
+        final totalCount = taskProvider.taskCount;
+
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF2d3561),
+                Color(0xFF1f2544),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Tarefas',
                     style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[600],
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '$completedCount/$totalCount',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ],
-                const SizedBox(height: 24),
-
-                // Progress Card - Based on Tasks
-                Consumer<TaskProvider>(
-                  builder: (context, taskProvider, _) {
-                    final totalTasks = taskProvider.taskCount;
-                    final completedTasks = taskProvider.completedCount;
-                    final progress = totalTasks > 0
-                        ? (completedTasks / totalTasks * 100)
-                        : 0.0;
-
-                    return Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Progresso',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  '$completedTasks de $totalTasks tarefas',
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                Text(
-                                  '${progress.toStringAsFixed(1)}%',
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: LinearProgressIndicator(
-                                value: progress / 100,
-                                minHeight: 12,
-                                backgroundColor: Colors.grey[200],
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  progress >= 100 ? Colors.green : Colors.blue,
-                                ),
-                              ),
-                            ),
-                            if (totalTasks == 0) ...[
-                              const SizedBox(height: 8),
-                              Text(
-                                'Adicione tarefas para acompanhar o progresso',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 14,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Stats Card
-                Card(
+              ),
+              const SizedBox(height: 16),
+              if (tasks.isEmpty)
+                Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(24),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Estatísticas',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Icon(
+                          Icons.task_outlined,
+                          size: 64,
+                          color: Colors.white.withOpacity(0.3),
                         ),
                         const SizedBox(height: 16),
-                        _buildStatRow(
-                          'Período',
-                          '${_dateFormat.format(goal.startDate)} - ${_dateFormat.format(goal.targetDate)}',
+                        Text(
+                          'Nenhuma tarefa criada',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.7),
+                            fontSize: 16,
+                          ),
                         ),
-                        const Divider(height: 24),
-                        _buildStatRow(
-                          goal.isOverdue ? 'Prazo expirado' : 'Dias restantes',
-                          goal.isOverdue
-                              ? 'há ${DateTime.now().difference(goal.targetDate).inDays} dias'
-                              : '${goal.daysRemaining} dias',
-                          isWarning: goal.isOverdue,
+                        const SizedBox(height: 8),
+                        Text(
+                          'Toque no botão para criar sua primeira tarefa',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.5),
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        const Divider(height: 24),
-                        _buildStatRow(
-                          'Dias decorridos',
-                          '${goal.daysElapsed} de ${goal.totalDays} dias',
-                        ),
-                        // Comentado temporariamente - Status sempre aparece como "Atrasado"
-                        // const Divider(height: 24),
-                        // _buildStatRow(
-                        //   'Status',
-                        //   goal.isOnTrack ? 'No prazo ✓' : 'Atrasado ⚠',
-                        //   isWarning: !goal.isOnTrack,
-                        // ),
                       ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-
-                // Tasks Card
-                Consumer<TaskProvider>(
-                  builder: (context, taskProvider, _) {
-                    final tasks = taskProvider.tasks;
-                    final completedCount = taskProvider.completedCount;
-                    final totalCount = taskProvider.taskCount;
-
-                    return Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Tarefas',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    Text(
-                                      '$completedCount/$totalCount',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    IconButton(
-                                      icon: const Icon(Icons.add_circle_outline),
-                                      onPressed: () => _showAddTaskDialog(),
-                                      tooltip: 'Adicionar Tarefa',
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            if (tasks.isEmpty)
-                              Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(24),
-                                  child: Column(
-                                    children: [
-                                      Icon(
-                                        Icons.task_outlined,
-                                        size: 48,
-                                        color: Colors.grey[400],
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Text(
-                                        'Nenhuma tarefa criada',
-                                        style: TextStyle(color: Colors.grey[600]),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      TextButton.icon(
-                                        onPressed: () => _showAddTaskDialog(),
-                                        icon: const Icon(Icons.add),
-                                        label: const Text('Criar primeira tarefa'),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            else
-                              ReorderableListView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: tasks.length,
-                                onReorder: (oldIndex, newIndex) {
-                                  _reorderTasks(oldIndex, newIndex);
-                                },
-                                itemBuilder: (context, index) {
-                                  final task = tasks[index];
-                                  return Column(
-                                    key: ValueKey(task.id),
-                                    children: [
-                                      if (index > 0) const Divider(height: 1),
-                                      _TaskListItem(
-                                        task: task,
-                                        onToggle: () => _toggleTask(task),
-                                        onDelete: () => _deleteTask(task),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
-                          ],
-                        ),
+                )
+              else
+                ReorderableListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  buildDefaultDragHandles: false,
+                  proxyDecorator: (child, index, animation) {
+                    return AnimatedBuilder(
+                      animation: animation,
+                      builder: (context, child) {
+                        return Material(
+                          color: Colors.transparent,
+                          child: Opacity(
+                            opacity: 0.8,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: child,
+                    );
+                  },
+                  itemCount: tasks.length,
+                  onReorder: (oldIndex, newIndex) {
+                    _reorderTasks(oldIndex, newIndex);
+                  },
+                  itemBuilder: (context, index) {
+                    final task = tasks[index];
+                    return ReorderableDragStartListener(
+                      key: ValueKey(task.id),
+                      index: index,
+                      child: _TaskListItem(
+                        task: task,
+                        onToggle: () => _toggleTask(task),
+                        onDelete: () => _deleteTask(task),
                       ),
                     );
                   },
                 ),
-                /* OLD CODE - Transactions linked to goals
-                Consumer<TransactionProvider>(
-                  builder: (context, transactionProvider, _) {
-                    final goalTransactions = [];
-
-                    return Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Transações Associadas',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  '${goalTransactions.length}',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            if (goalTransactions.isEmpty)
-                              Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(24),
-                                  child: Column(
-                                    children: [
-                                      Icon(
-                                        Icons.receipt_long_outlined,
-                                        size: 48,
-                                        color: Colors.grey[400],
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Text(
-                                        'Nenhuma transação associada',
-                                        style: TextStyle(color: Colors.grey[600]),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            else
-                              ListView.separated(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                itemCount: goalTransactions.length,
-                                separatorBuilder: (context, index) => const Divider(),
-                                itemBuilder: (context, index) {
-                                  final transaction = goalTransactions[index];
-                                  return ListTile(
-                                    contentPadding: EdgeInsets.zero,
-                                    leading: CircleAvatar(
-                                      backgroundColor: transaction.isIncome
-                                          ? Colors.green.withOpacity(0.1)
-                                          : Colors.red.withOpacity(0.1),
-                                      child: Icon(
-                                        transaction.category.icon,
-                                        color: transaction.isIncome
-                                            ? Colors.green
-                                            : Colors.red,
-                                        size: 20,
-                                      ),
-                                    ),
-                                    title: Text(
-                                      transaction.description,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    subtitle: Text(
-                                      _dateFormat.format(transaction.date),
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                    trailing: Text(
-                                      _currencyFormat.format(
-                                        transaction.signedAmount,
-                                      ),
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: transaction.isIncome
-                                            ? Colors.green
-                                            : Colors.red,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                */
-              ],
-            ),
-          );
-        },
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -736,57 +900,34 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     Color color;
     switch (status) {
       case GoalStatus.active:
-        color = Colors.blue;
+        color = Colors.white;
         break;
       case GoalStatus.completed:
-        color = Colors.green;
+        color = Colors.greenAccent;
         break;
       case GoalStatus.paused:
-        color = Colors.orange;
+        color = Colors.orangeAccent;
         break;
       case GoalStatus.cancelled:
-        color = Colors.red;
+        color = Colors.redAccent;
         break;
     }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withOpacity(0.2),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color),
+        border: Border.all(color: color.withOpacity(0.5)),
       ),
       child: Text(
         status.displayName,
         style: TextStyle(
           color: color,
           fontWeight: FontWeight.w600,
-          fontSize: 12,
+          fontSize: 13,
         ),
       ),
-    );
-  }
-
-  Widget _buildStatRow(String label, String value, {bool isWarning = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            color: isWarning ? Colors.red : Colors.grey[600],
-          ),
-        ),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: isWarning ? Colors.red : null,
-          ),
-        ),
-      ],
     );
   }
 }
@@ -798,52 +939,101 @@ class _TaskListItem extends StatelessWidget {
   final VoidCallback onDelete;
 
   const _TaskListItem({
+    Key? key,
     required this.task,
     required this.onToggle,
     required this.onDelete,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
-      leading: Checkbox(
-        value: task.isCompleted,
-        onChanged: (_) => onToggle(),
-      ),
-      title: Text(
-        task.title,
-        style: TextStyle(
-          decoration:
-              task.isCompleted ? TextDecoration.lineThrough : TextDecoration.none,
-          color: task.isCompleted ? Colors.grey : null,
-          fontWeight: FontWeight.w500,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: task.isCompleted
+              ? Colors.green.withOpacity(0.3)
+              : Colors.white.withOpacity(0.1),
+          width: 1,
         ),
       ),
-      subtitle: task.description.isNotEmpty
-          ? Text(
-              task.description,
-              style: TextStyle(
-                fontSize: 12,
-                color: task.isCompleted ? Colors.grey[400] : Colors.grey[600],
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            )
-          : null,
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
+      child: Row(
         children: [
-          if (task.priority >= 4)
-            Icon(
-              Icons.flag,
-              size: 16,
-              color: task.priority == 5 ? Colors.red : Colors.orange,
+          // Drag Handle
+          Icon(
+            Icons.drag_indicator,
+            color: Colors.white.withOpacity(0.3),
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          // Checkbox
+          Checkbox(
+            value: task.isCompleted,
+            onChanged: (_) => onToggle(),
+            activeColor: Colors.green,
+            checkColor: Colors.white,
+            side: BorderSide(color: Colors.white.withOpacity(0.5)),
+          ),
+          const SizedBox(width: 12),
+          // Task Info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  task.title,
+                  style: TextStyle(
+                    decoration: task.isCompleted
+                        ? TextDecoration.lineThrough
+                        : TextDecoration.none,
+                    color: task.isCompleted
+                        ? Colors.white.withOpacity(0.5)
+                        : Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+                if (task.description.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    task.description,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: task.isCompleted
+                          ? Colors.white.withOpacity(0.3)
+                          : Colors.white.withOpacity(0.7),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
             ),
+          ),
+          // Priority Flag
+          if (task.priority >= 4)
+            Container(
+              margin: const EdgeInsets.only(left: 8),
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: (task.priority == 5 ? Colors.red : Colors.orange)
+                    .withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.flag,
+                size: 16,
+                color: task.priority == 5 ? Colors.red : Colors.orange,
+              ),
+            ),
+          // Delete Button
           IconButton(
             icon: const Icon(Icons.delete_outline, size: 20),
             onPressed: onDelete,
-            color: Colors.red[300],
+            color: Colors.red.withOpacity(0.7),
           ),
         ],
       ),
@@ -880,17 +1070,33 @@ class _AddTaskDialogState extends State<_AddTaskDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Nova Tarefa'),
+      backgroundColor: const Color(0xFF2d3561),
+      title: const Text(
+        'Nova Tarefa',
+        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      ),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: _titleController,
-              decoration: const InputDecoration(
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
                 labelText: 'Título',
+                labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
                 hintText: 'Ex: Guardar R\$ 1.000',
-                border: OutlineInputBorder(),
+                hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.1),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: const OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF3B82F6)),
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
               ),
               textCapitalization: TextCapitalization.sentences,
               autofocus: true,
@@ -898,9 +1104,20 @@ class _AddTaskDialogState extends State<_AddTaskDialog> {
             const SizedBox(height: 16),
             TextField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
                 labelText: 'Descrição (opcional)',
-                border: OutlineInputBorder(),
+                labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.1),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: const OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF3B82F6)),
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
               ),
               textCapitalization: TextCapitalization.sentences,
               maxLines: 3,
@@ -911,7 +1128,10 @@ class _AddTaskDialogState extends State<_AddTaskDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, null),
-          child: const Text('Cancelar'),
+          child: Text(
+            'Cancelar',
+            style: TextStyle(color: Colors.white.withOpacity(0.7)),
+          ),
         ),
         ElevatedButton(
           onPressed: () {
@@ -922,6 +1142,13 @@ class _AddTaskDialogState extends State<_AddTaskDialog> {
               });
             }
           },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF3B82F6),
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
           child: const Text('Criar'),
         ),
       ],

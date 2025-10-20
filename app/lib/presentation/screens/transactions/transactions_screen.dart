@@ -42,138 +42,232 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Transações'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text(
+          'Transações',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+            color: Colors.white,
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
-            icon: const Icon(Icons.filter_list),
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.filter_list, size: 20),
+            ),
             onPressed: _showFilterDialog,
           ),
         ],
       ),
-      body: Column(
-        children: [
-          _buildSummaryCard(theme),
-          Expanded(
-            child: Consumer<TransactionProvider>(
-              builder: (context, provider, _) {
-                if (provider.isLoading && provider.transactions.isEmpty) {
-                  return const LoadingIndicator();
-                }
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF1a1a2e),
+              Color(0xFF16213e),
+              Color(0xFF0f3460),
+            ],
+            stops: [0.0, 0.5, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              const SizedBox(height: 8),
+              _buildSummaryCard(),
+              Expanded(
+                child: Consumer<TransactionProvider>(
+                  builder: (context, provider, _) {
+                    if (provider.isLoading && provider.transactions.isEmpty) {
+                      return const LoadingIndicator();
+                    }
 
-                if (provider.hasError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          size: 64,
-                          color: theme.colorScheme.error,
+                    if (provider.hasError) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 64,
+                              color: Colors.red.withOpacity(0.7),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              provider.errorMessage ?? 'Erro ao carregar transações',
+                              style: const TextStyle(color: Colors.white70),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: _loadTransactions,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF5A67D8),
+                              ),
+                              child: const Text('Tentar Novamente'),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          provider.errorMessage ?? 'Erro ao carregar transações',
-                          style: theme.textTheme.bodyLarge,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _loadTransactions,
-                          child: const Text('Tentar Novamente'),
-                        ),
-                      ],
-                    ),
-                  );
-                }
+                      );
+                    }
 
-                if (provider.transactions.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.receipt_long_outlined,
-                          size: 64,
-                          color: theme.colorScheme.outline,
+                    if (provider.transactions.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.receipt_long_outlined,
+                              size: 64,
+                              color: Colors.white.withOpacity(0.3),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Nenhuma transação encontrada',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white.withOpacity(0.7),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Adicione sua primeira transação',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white.withOpacity(0.5),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Nenhuma transação encontrada',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.outline,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Adicione sua primeira transação',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.outline,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
+                      );
+                    }
 
-                return ListView.builder(
-                  padding: const EdgeInsets.all(AppConstants.defaultPadding),
-                  itemCount: provider.transactions.length,
-                  itemBuilder: (context, index) {
-                    final transaction = provider.transactions[index];
-                    return _TransactionListItem(
-                      transaction: transaction,
-                      onTap: () => _showTransactionDetails(transaction),
-                      onDelete: () => _deleteTransaction(transaction.id),
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: provider.transactions.length,
+                      itemBuilder: (context, index) {
+                        final transaction = provider.transactions[index];
+                        return _TransactionListItem(
+                          transaction: transaction,
+                          onTap: () => _showTransactionDetails(transaction),
+                          onDelete: () => _deleteTransaction(transaction.id),
+                        );
+                      },
                     );
                   },
-                );
-              },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      floatingActionButton: Container(
+        height: 56,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF10B981),
+              Color(0xFF059669),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF10B981).withOpacity(0.4),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          onPressed: _addTransaction,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          icon: const Icon(Icons.add, color: Colors.white),
+          label: const Text(
+            'Nova Transação',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
             ),
           ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _addTransaction,
-        icon: const Icon(Icons.add),
-        label: const Text('Nova Transação'),
+        ),
       ),
     );
   }
 
-  Widget _buildSummaryCard(ThemeData theme) {
+  Widget _buildSummaryCard() {
     return Consumer<TransactionProvider>(
       builder: (context, provider, _) {
-        return Card(
-          margin: const EdgeInsets.all(AppConstants.defaultPadding),
-          child: Padding(
-            padding: const EdgeInsets.all(AppConstants.defaultPadding),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildSummaryItem(
-                  'Receitas',
-                  provider.totalIncome,
-                  Colors.green,
-                  theme,
-                ),
-                _buildSummaryItem(
-                  'Despesas',
-                  provider.totalExpenses,
-                  Colors.red,
-                  theme,
-                ),
-                _buildSummaryItem(
-                  'Saldo',
-                  provider.balance,
-                  provider.balance >= 0 ? Colors.green : Colors.red,
-                  theme,
-                ),
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF2d3561),
+                Color(0xFF1f2544),
               ],
             ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildSummaryItem(
+                'Receitas',
+                provider.totalIncome,
+                Colors.green,
+                Icons.arrow_upward,
+              ),
+              Container(
+                width: 1,
+                height: 50,
+                color: Colors.white.withOpacity(0.2),
+              ),
+              _buildSummaryItem(
+                'Despesas',
+                provider.totalExpenses,
+                Colors.red,
+                Icons.arrow_downward,
+              ),
+              Container(
+                width: 1,
+                height: 50,
+                color: Colors.white.withOpacity(0.2),
+              ),
+              _buildSummaryItem(
+                'Saldo',
+                provider.balance,
+                provider.balance >= 0 ? Colors.green : Colors.red,
+                Icons.account_balance_wallet,
+              ),
+            ],
           ),
         );
       },
@@ -184,22 +278,26 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     String label,
     double value,
     Color color,
-    ThemeData theme,
+    IconData icon,
   ) {
     return Column(
       children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(height: 8),
         Text(
           label,
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.outline,
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.7),
+            fontSize: 12,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           'R\$ ${value.toStringAsFixed(2)}',
-          style: theme.textTheme.titleMedium?.copyWith(
+          style: TextStyle(
             color: color,
             fontWeight: FontWeight.bold,
+            fontSize: 16,
           ),
         ),
       ],
@@ -227,6 +325,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   void _showTransactionDetails(TransactionEntity transaction) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.transparent,
       builder: (context) => _TransactionDetailsSheet(transaction: transaction),
     );
   }
@@ -235,17 +334,28 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirmar Exclusão'),
-        content: const Text('Deseja realmente excluir esta transação?'),
+        backgroundColor: const Color(0xFF2d3561),
+        title: const Text(
+          'Confirmar Exclusão',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'Deseja realmente excluir esta transação?',
+          style: TextStyle(color: Colors.white70),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+            child: Text(
+              'Cancelar',
+              style: TextStyle(color: Colors.white.withOpacity(0.7)),
+            ),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
             ),
             child: const Text('Excluir'),
           ),
@@ -280,30 +390,43 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Filtrar Transações'),
+        backgroundColor: const Color(0xFF2d3561),
+        title: const Text(
+          'Filtrar Transações',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         content: StatefulBuilder(
           builder: (context, setState) {
             return Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Tipo:'),
+                Text(
+                  'Tipo:',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 RadioListTile<TransactionType?>(
-                  title: const Text('Todas'),
+                  title: const Text('Todas', style: TextStyle(color: Colors.white)),
                   value: null,
                   groupValue: _filterType,
+                  activeColor: const Color(0xFF5A67D8),
                   onChanged: (value) => setState(() => _filterType = value),
                 ),
                 RadioListTile<TransactionType?>(
-                  title: const Text('Receitas'),
+                  title: const Text('Receitas', style: TextStyle(color: Colors.white)),
                   value: TransactionType.income,
                   groupValue: _filterType,
+                  activeColor: const Color(0xFF5A67D8),
                   onChanged: (value) => setState(() => _filterType = value),
                 ),
                 RadioListTile<TransactionType?>(
-                  title: const Text('Despesas'),
+                  title: const Text('Despesas', style: TextStyle(color: Colors.white)),
                   value: TransactionType.expense,
                   groupValue: _filterType,
+                  activeColor: const Color(0xFF5A67D8),
                   onChanged: (value) => setState(() => _filterType = value),
                 ),
               ],
@@ -321,13 +444,20 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               Navigator.pop(context);
               _loadTransactions();
             },
-            child: const Text('Limpar'),
+            child: Text(
+              'Limpar',
+              style: TextStyle(color: Colors.white.withOpacity(0.7)),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               _loadTransactions();
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF5A67D8),
+              foregroundColor: Colors.white,
+            ),
             child: const Text('Aplicar'),
           ),
         ],
@@ -349,36 +479,60 @@ class _TransactionListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final isIncome = transaction.isIncome;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.1),
+          width: 1,
+        ),
+      ),
       child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: isIncome ? Colors.green.shade100 : Colors.red.shade100,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isIncome
+                  ? [Colors.green.shade400, Colors.green.shade600]
+                  : [Colors.red.shade400, Colors.red.shade600],
+            ),
+            shape: BoxShape.circle,
+          ),
           child: Icon(
             isIncome ? Icons.arrow_upward : Icons.arrow_downward,
-            color: isIncome ? Colors.green : Colors.red,
+            color: Colors.white,
+            size: 20,
           ),
         ),
-        title: Text(transaction.description),
+        title: Text(
+          transaction.description,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+          ),
+        ),
         subtitle: Text(
           '${transaction.category.displayName} • ${_formatDate(transaction.date)}',
-          style: theme.textTheme.bodySmall,
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.6),
+            fontSize: 13,
+          ),
         ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              '${isIncome ? '+' : '-'} R\$ ${transaction.amount.toStringAsFixed(2)}',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: isIncome ? Colors.green : Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
+        trailing: Text(
+          '${isIncome ? '+' : '-'} R\$ ${transaction.amount.toStringAsFixed(2)}',
+          style: TextStyle(
+            color: isIncome ? Colors.green : Colors.red,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
         ),
         onTap: onTap,
       ),
@@ -399,24 +553,43 @@ class _TransactionDetailsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Container(
-      padding: const EdgeInsets.all(AppConstants.defaultPadding),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF2d3561),
+            Color(0xFF1f2544),
+          ],
+        ),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+      ),
+      padding: const EdgeInsets.all(24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              CircleAvatar(
-                backgroundColor: transaction.isIncome
-                    ? Colors.green.shade100
-                    : Colors.red.shade100,
-                radius: 24,
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: transaction.isIncome
+                        ? [Colors.green.shade400, Colors.green.shade600]
+                        : [Colors.red.shade400, Colors.red.shade600],
+                  ),
+                  shape: BoxShape.circle,
+                ),
                 child: Icon(
                   transaction.isIncome ? Icons.arrow_upward : Icons.arrow_downward,
-                  color: transaction.isIncome ? Colors.green : Colors.red,
+                  color: Colors.white,
                   size: 28,
                 ),
               ),
@@ -427,12 +600,17 @@ class _TransactionDetailsSheet extends StatelessWidget {
                   children: [
                     Text(
                       transaction.description,
-                      style: theme.textTheme.titleLarge,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                     Text(
                       transaction.type.displayName,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.outline,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.6),
                       ),
                     ),
                   ],
@@ -440,24 +618,45 @@ class _TransactionDetailsSheet extends StatelessWidget {
               ),
             ],
           ),
-          const Divider(height: 32),
-          _DetailRow('Valor', 'R\$ ${transaction.amount.toStringAsFixed(2)}'),
-          _DetailRow('Categoria', transaction.category.displayName),
-          _DetailRow('Data', _formatDate(transaction.date)),
           const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    // TODO: Navigate to edit screen
-                  },
-                  icon: const Icon(Icons.edit),
-                  label: const Text('Editar'),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                _DetailRow('Valor', 'R\$ ${transaction.amount.toStringAsFixed(2)}'),
+                const SizedBox(height: 12),
+                _DetailRow('Categoria', transaction.category.displayName),
+                const SizedBox(height: 12),
+                _DetailRow('Data', _formatDate(transaction.date)),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+                // TODO: Navigate to edit screen
+              },
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF5A67D8),
+                side: const BorderSide(color: Color(0xFF5A67D8)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
               ),
-            ],
+              icon: const Icon(Icons.edit),
+              label: const Text(
+                'Editar',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
           ),
         ],
       ),
@@ -479,27 +678,25 @@ class _DetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.outline,
-            ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.6),
+            fontSize: 14,
           ),
-          Text(
-            value,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

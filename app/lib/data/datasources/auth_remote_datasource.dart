@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../../core/constants/firebase_constants.dart';
 import '../../core/errors/exceptions.dart';
 import '../models/user_model.dart';
@@ -43,7 +44,26 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           .get();
 
       if (userDoc.exists) {
-        return UserModel.fromJson(userDoc.data()!);
+        final firestoreData = userDoc.data()!;
+        // Merge Firebase Auth displayName with Firestore data if Firestore is missing it
+        if ((firestoreData[FirebaseConstants.displayNameField] == null ||
+                (firestoreData[FirebaseConstants.displayNameField] as String).isEmpty) &&
+            firebaseUser.displayName != null &&
+            firebaseUser.displayName!.isNotEmpty) {
+          firestoreData[FirebaseConstants.displayNameField] = firebaseUser.displayName;
+          // Update Firestore document with displayName from Firebase Auth
+          try {
+            await _firestore
+                .collection(FirebaseConstants.usersCollection)
+                .doc(firebaseUser.uid)
+                .update({
+              FirebaseConstants.displayNameField: firebaseUser.displayName,
+            });
+          } catch (e) {
+            debugPrint('Failed to update displayName in Firestore: $e');
+          }
+        }
+        return UserModel.fromJson(firestoreData);
       } else {
         // Create user document if it doesn't exist
         final userModel = UserModel.fromFirebaseUser(firebaseUser);
@@ -117,12 +137,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       // Update display name if provided
       if (displayName != null && displayName.isNotEmpty) {
         await credential.user!.updateDisplayName(displayName);
-        await credential.user!.reload();
       }
 
-      // Create user model
+      // Create user model - use credential.user directly, don't use currentUser
       final userModel = UserModel.fromFirebaseUser(
-        _firebaseAuth.currentUser ?? credential.user!,
+        credential.user!,
       ).copyWith(displayName: displayName);
 
       // Create user document in Firestore

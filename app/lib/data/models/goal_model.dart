@@ -67,7 +67,9 @@ class GoalModel {
       targetDate: (data['targetDate'] as Timestamp).toDate(),
       status: data['status'] as String,
       associatedTransactionIds:
-          List<String>.from(data['associatedTransactionIds'] as List),
+          (data['associatedTransactionIds'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ?? [],
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       updatedAt: data['updatedAt'] != null
           ? (data['updatedAt'] as Timestamp).toDate()
@@ -88,7 +90,9 @@ class GoalModel {
       targetDate: (data['targetDate'] as Timestamp).toDate(),
       status: data['status'] as String,
       associatedTransactionIds:
-          List<String>.from(data['associatedTransactionIds'] as List),
+          (data['associatedTransactionIds'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ?? [],
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       updatedAt: data['updatedAt'] != null
           ? (data['updatedAt'] as Timestamp).toDate()
@@ -127,7 +131,9 @@ class GoalModel {
       targetDate: DateTime.parse(json['targetDate'] as String),
       status: json['status'] as String,
       associatedTransactionIds:
-          List<String>.from(json['associatedTransactionIds'] as List),
+          (json['associatedTransactionIds'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ?? [],
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: json['updatedAt'] != null
           ? DateTime.parse(json['updatedAt'] as String)

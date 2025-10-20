@@ -8,17 +8,17 @@ class Validators {
   /// Validate email address
   static String? validateEmail(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Email is required';
+      return 'E-mail é obrigatório';
     }
 
     final trimmed = value.trim();
 
     if (trimmed.length > AppConstants.maxEmailLength) {
-      return 'Email is too long';
+      return 'E-mail muito longo';
     }
 
     if (!AppConstants.emailRegex.hasMatch(trimmed)) {
-      return 'Please enter a valid email address';
+      return 'Digite um e-mail válido';
     }
 
     return null;
@@ -27,30 +27,30 @@ class Validators {
   /// Validate password
   static String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Password is required';
+      return 'Senha é obrigatória';
     }
 
     if (value.length < AppConstants.minPasswordLength) {
-      return 'Password must be at least ${AppConstants.minPasswordLength} characters';
+      return 'Senha deve ter pelo menos ${AppConstants.minPasswordLength} caracteres';
     }
 
     if (value.length > AppConstants.maxPasswordLength) {
-      return 'Password is too long';
+      return 'Senha muito longa';
     }
 
     // Check for at least one uppercase letter
     if (!value.contains(RegExp(r'[A-Z]'))) {
-      return 'Password must contain at least one uppercase letter';
+      return 'Senha deve conter pelo menos uma letra maiúscula';
     }
 
     // Check for at least one lowercase letter
     if (!value.contains(RegExp(r'[a-z]'))) {
-      return 'Password must contain at least one lowercase letter';
+      return 'Senha deve conter pelo menos uma letra minúscula';
     }
 
     // Check for at least one digit
     if (!value.contains(RegExp(r'[0-9]'))) {
-      return 'Password must contain at least one number';
+      return 'Senha deve conter pelo menos um número';
     }
 
     // Optional: Check for special characters
@@ -64,11 +64,11 @@ class Validators {
   /// Validate confirm password
   static String? validateConfirmPassword(String? value, String? password) {
     if (value == null || value.isEmpty) {
-      return 'Please confirm your password';
+      return 'Por favor, confirme sua senha';
     }
 
     if (value != password) {
-      return 'Passwords do not match';
+      return 'As senhas não coincidem';
     }
 
     return null;
@@ -77,21 +77,21 @@ class Validators {
   /// Validate name
   static String? validateName(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Name is required';
+      return 'Nome é obrigatório';
     }
 
     final trimmed = value.trim();
 
     if (trimmed.length < AppConstants.minNameLength) {
-      return 'Name must be at least ${AppConstants.minNameLength} characters';
+      return 'Nome deve ter pelo menos ${AppConstants.minNameLength} caracteres';
     }
 
     if (trimmed.length > AppConstants.maxNameLength) {
-      return 'Name is too long';
+      return 'Nome muito longo';
     }
 
     if (!AppConstants.nameRegex.hasMatch(trimmed)) {
-      return 'Please enter a valid name';
+      return 'Digite um nome válido';
     }
 
     return null;

@@ -330,9 +330,14 @@ class MyApp extends StatelessWidget {
 }
 
 /// Auth wrapper to handle authentication state
-class AuthWrapper extends StatelessWidget {
+class AuthWrapper extends StatefulWidget {
   const AuthWrapper({Key? key}) : super(key: key);
 
+  @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
   @override
   Widget build(BuildContext context) {
     return Consumer<AppAuthProvider>(
@@ -340,16 +345,64 @@ class AuthWrapper extends StatelessWidget {
         // Show loading while checking auth state
         if (authProvider.status == AuthStatus.initial ||
             authProvider.status == AuthStatus.authenticating) {
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
+          return Scaffold(
+            body: Container(
+              width: double.infinity,
+              height: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF1a1a2e),
+                    Color(0xFF16213e),
+                    Color(0xFF0f3460),
+                  ],
+                  stops: [0.0, 0.5, 1.0],
+                ),
+              ),
+              child: const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
             ),
           );
         }
 
         // Navigate based on auth status
-        if (authProvider.status == AuthStatus.authenticated) {
-          return const HomeScreen();
+        if (authProvider.status == AuthStatus.authenticated &&
+            authProvider.user != null) {
+          // Use post frame callback to navigate after build is complete
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (ModalRoute.of(context)?.settings.name != AppConstants.homeRoute) {
+              Navigator.of(context).pushReplacementNamed(AppConstants.homeRoute);
+            }
+          });
+          // Show loading while navigating
+          return Scaffold(
+            body: Container(
+              width: double.infinity,
+              height: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF1a1a2e),
+                    Color(0xFF16213e),
+                    Color(0xFF0f3460),
+                  ],
+                  stops: [0.0, 0.5, 1.0],
+                ),
+              ),
+              child: const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+            ),
+          );
         }
 
         // Default to login screen

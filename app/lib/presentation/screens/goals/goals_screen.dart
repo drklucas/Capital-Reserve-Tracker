@@ -34,160 +34,304 @@ class _GoalsScreenState extends State<GoalsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Minhas Metas'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text(
+          'Minhas Metas',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+            color: Colors.white,
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add),
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.add, size: 20),
+            ),
             onPressed: () => _navigateToAddGoal(context),
             tooltip: 'Adicionar Meta',
           ),
+          const SizedBox(width: 8),
         ],
       ),
-      body: Consumer<GoalProvider>(
-        builder: (context, goalProvider, child) {
-          if (goalProvider.status == GoalProviderStatus.loading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (goalProvider.status == GoalProviderStatus.error) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    goalProvider.errorMessage ?? 'Erro ao carregar metas',
-                    style: const TextStyle(fontSize: 16),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      final authProvider = context.read<AppAuthProvider>();
-                      if (authProvider.user != null) {
-                        goalProvider.loadGoals(authProvider.user!.id);
-                      }
-                    },
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Tentar Novamente'),
-                  ),
+      body: Stack(
+        children: [
+          // Gradient Background
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF1a1a2e),
+                  Color(0xFF16213e),
+                  Color(0xFF0f3460),
                 ],
+                stops: [0.0, 0.5, 1.0],
               ),
-            );
-          }
+            ),
+          ),
+          // Content
+          SafeArea(
+            child: Consumer<GoalProvider>(
+              builder: (context, goalProvider, child) {
+                if (goalProvider.status == GoalProviderStatus.loading) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  );
+                }
 
-          if (goalProvider.goals.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.flag_outlined,
-                      size: 80, color: Colors.grey[400]),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Nenhuma meta cadastrada',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
+                if (goalProvider.status == GoalProviderStatus.error) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline, size: 64, color: Colors.white70),
+                        const SizedBox(height: 16),
+                        Text(
+                          goalProvider.errorMessage ?? 'Erro ao carregar metas',
+                          style: const TextStyle(fontSize: 16, color: Colors.white),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            final authProvider = context.read<AppAuthProvider>();
+                            if (authProvider.user != null) {
+                              goalProvider.loadGoals(authProvider.user!.id);
+                            }
+                          },
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Tentar Novamente'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white.withOpacity(0.2),
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                if (goalProvider.goals.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.flag_outlined,
+                          size: 80,
+                          color: Colors.white.withOpacity(0.3),
+                        ),
+                        const SizedBox(height: 24),
+                        const Text(
+                          'Nenhuma meta cadastrada',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Crie sua primeira meta financeira!',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.7),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: () => _navigateToAddGoal(context),
+                          icon: const Icon(Icons.add),
+                          label: const Text('Criar Meta'),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 16,
+                            ),
+                            backgroundColor: const Color(0xFF3B82F6),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    final authProvider = context.read<AppAuthProvider>();
+                    if (authProvider.user != null) {
+                      await goalProvider.loadGoals(authProvider.user!.id);
+                    }
+                  },
+                  color: const Color(0xFF3B82F6),
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 20),
+
+                          // Summary Card
+                          _buildSummaryCard(goalProvider),
+
+                          const SizedBox(height: 24),
+
+                          // Goals List Header
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Suas Metas',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              Text(
+                                '${goalProvider.goals.length} ${goalProvider.goals.length == 1 ? 'meta' : 'metas'}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white.withOpacity(0.7),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // Goals List
+                          ListView.separated(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: goalProvider.goals.length,
+                            separatorBuilder: (context, index) => const SizedBox(height: 12),
+                            itemBuilder: (context, index) {
+                              final goal = goalProvider.goals[index];
+                              return _buildGoalCard(context, goal, index);
+                            },
+                          ),
+
+                          const SizedBox(height: 80), // Space for FAB
+                        ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Crie sua primeira meta financeira!',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () => _navigateToAddGoal(context),
-                    icon: const Icon(Icons.add),
-                    label: const Text('Criar Meta'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              final authProvider = context.read<AppAuthProvider>();
-              if (authProvider.user != null) {
-                await goalProvider.loadGoals(authProvider.user!.id);
-              }
-            },
-            child: Column(
-              children: [
-                // Summary Card
-                _buildSummaryCard(goalProvider),
-
-                // Goals List
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: goalProvider.goals.length,
-                    itemBuilder: (context, index) {
-                      final goal = goalProvider.goals[index];
-                      return _buildGoalCard(context, goal);
-                    },
-                  ),
-                ),
-              ],
+                );
+              },
             ),
-          );
-        },
+          ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _navigateToAddGoal(context),
-        child: const Icon(Icons.add),
-        tooltip: 'Adicionar Meta',
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF3B82F6), Color(0xFF06B6D4)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF3B82F6).withOpacity(0.4),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          onPressed: () => _navigateToAddGoal(context),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          icon: const Icon(Icons.add_rounded, color: Colors.white),
+          label: const Text(
+            'Nova Meta',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildSummaryCard(GoalProvider goalProvider) {
-    return Card(
-      margin: const EdgeInsets.all(16),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Resumo Geral',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildSummaryItem(
-                  'Metas Ativas',
-                  goalProvider.activeGoals.length.toString(),
-                  Colors.blue,
-                  Icons.flag,
-                ),
-                _buildSummaryItem(
-                  'Concluídas',
-                  goalProvider.completedGoals.length.toString(),
-                  Colors.green,
-                  Icons.check_circle,
-                ),
-                _buildSummaryItem(
-                  'Progresso',
-                  '${goalProvider.overallProgress.toStringAsFixed(1)}%',
-                  Colors.orange,
-                  Icons.trending_up,
-                ),
-              ],
-            ),
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF2d3561),
+            Color(0xFF1f2544),
           ],
         ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Resumo Geral',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildSummaryItem(
+                'Ativas',
+                goalProvider.activeGoals.length.toString(),
+                Colors.blue,
+                Icons.flag,
+              ),
+              _buildSummaryItem(
+                'Concluídas',
+                goalProvider.completedGoals.length.toString(),
+                Colors.green,
+                Icons.check_circle,
+              ),
+              _buildSummaryItem(
+                'Tarefas',
+                '${goalProvider.completedTasksForActiveGoals}/${goalProvider.totalTasksForActiveGoals}',
+                Colors.orange,
+                Icons.task_alt,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -200,14 +344,21 @@ class _GoalsScreenState extends State<GoalsScreen> {
   ) {
     return Column(
       children: [
-        Icon(icon, color: color, size: 32),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.2),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color, size: 24),
+        ),
         const SizedBox(height: 8),
         Text(
           value,
           style: TextStyle(
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: color,
+            color: Colors.white,
           ),
         ),
         const SizedBox(height: 4),
@@ -215,23 +366,59 @@ class _GoalsScreenState extends State<GoalsScreen> {
           label,
           style: TextStyle(
             fontSize: 12,
-            color: Colors.grey[600],
+            color: Colors.white.withOpacity(0.7),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildGoalCard(BuildContext context, GoalEntity goal) {
+  Widget _buildGoalCard(BuildContext context, GoalEntity goal, int index) {
     final isOverdue = goal.isOverdue;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
-        onTap: () => _navigateToGoalDetail(context, goal),
-        borderRadius: BorderRadius.circular(12),
+    // Gradient colors for different goal cards
+    final gradients = [
+      const LinearGradient(
+        colors: [Color(0xFFEC4899), Color(0xFF8B5CF6)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      const LinearGradient(
+        colors: [Color(0xFF8B5CF6), Color(0xFF3B82F6)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      const LinearGradient(
+        colors: [Color(0xFFF59E0B), Color(0xFFEF4444)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      const LinearGradient(
+        colors: [Color(0xFF10B981), Color(0xFF059669)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+    ];
+
+    final gradient = gradients[index % gradients.length];
+
+    return InkWell(
+      onTap: () => _navigateToGoalDetail(context, goal),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: gradient,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: gradient.colors.first.withOpacity(0.3),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -242,11 +429,15 @@ class _GoalsScreenState extends State<GoalsScreen> {
                     child: Text(
                       goal.title,
                       style: const TextStyle(
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  const SizedBox(width: 8),
                   _buildStatusChip(goal.status),
                 ],
               ),
@@ -256,7 +447,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
                   goal.description,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[600],
+                    color: Colors.white.withOpacity(0.8),
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -264,42 +455,93 @@ class _GoalsScreenState extends State<GoalsScreen> {
               ],
               const SizedBox(height: 16),
 
-              // Progress bar (based on tasks) - removed to simplify
-              // Will show task count in date section instead
-
-              const SizedBox(height: 4),
-
-              // Date and days info
+              // Date info
               Row(
                 children: [
-                  Icon(Icons.calendar_today,
-                      size: 14, color: isOverdue ? Colors.red : Colors.grey),
-                  const SizedBox(width: 4),
-                  Text(
-                    isOverdue
-                        ? 'Prazo expirado'
-                        : '${goal.daysRemaining} dias restantes',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isOverdue ? Colors.red : Colors.grey[600],
+                  Icon(
+                    Icons.calendar_today,
+                    size: 16,
+                    color: isOverdue ? Colors.red[200] : Colors.white.withOpacity(0.9),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      isOverdue
+                          ? 'Prazo expirado há ${DateTime.now().difference(goal.targetDate).inDays} dias'
+                          : '${goal.daysRemaining} dias restantes',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isOverdue ? Colors.red[100] : Colors.white.withOpacity(0.9),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                  const Spacer(),
                   if (goal.hasTransactions)
-                    Row(
-                      children: [
-                        Icon(Icons.receipt_long,
-                            size: 14, color: Colors.grey[600]),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${goal.transactionCount} transações',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.receipt_long,
+                            size: 12,
+                            color: Colors.white.withOpacity(0.9),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 4),
+                          Text(
+                            '${goal.transactionCount}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.white.withOpacity(0.9),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // Progress bar (based on days)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Progresso',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.8),
+                          fontSize: 12,
+                        ),
+                      ),
+                      Text(
+                        '${((goal.daysElapsed / goal.totalDays) * 100).toStringAsFixed(0)}%',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: LinearProgressIndicator(
+                      value: (goal.daysElapsed / goal.totalDays).clamp(0.0, 1.0),
+                      minHeight: 6,
+                      backgroundColor: Colors.white.withOpacity(0.3),
+                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -315,29 +557,29 @@ class _GoalsScreenState extends State<GoalsScreen> {
 
     switch (status) {
       case GoalStatus.active:
-        color = Colors.blue;
+        color = Colors.white;
         label = 'Ativa';
         break;
       case GoalStatus.completed:
-        color = Colors.green;
+        color = Colors.greenAccent;
         label = 'Concluída';
         break;
       case GoalStatus.paused:
-        color = Colors.orange;
+        color = Colors.orangeAccent;
         label = 'Pausada';
         break;
       case GoalStatus.cancelled:
-        color = Colors.red;
+        color = Colors.redAccent;
         label = 'Cancelada';
         break;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withOpacity(0.2),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color, width: 1),
+        border: Border.all(color: color.withOpacity(0.5), width: 1),
       ),
       child: Text(
         label,

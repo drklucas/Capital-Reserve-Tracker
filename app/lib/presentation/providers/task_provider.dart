@@ -51,6 +51,7 @@ class TaskProvider extends ChangeNotifier {
   List<TaskEntity> _tasks = [];
   String? _errorMessage;
   StreamSubscription? _tasksSubscription;
+  bool _isReordering = false;
 
   // Getters
   TaskStatus get status => _status;
@@ -263,9 +264,12 @@ class TaskProvider extends ChangeNotifier {
             for (var task in tasks) {
               debugPrint('  - Task: ${task.title} (completed: ${task.isCompleted})');
             }
-            _status = TaskStatus.loaded;
-            _tasks = tasks;
-            notifyListeners();
+            // Skip stream updates during reordering to prevent visual glitches
+            if (!_isReordering) {
+              _status = TaskStatus.loaded;
+              _tasks = tasks;
+              notifyListeners();
+            }
           },
         );
       },
@@ -308,8 +312,9 @@ class TaskProvider extends ChangeNotifier {
     required int newIndex,
   }) async {
     try {
+      // Set reordering flag to prevent stream updates
+      _isReordering = true;
       _status = TaskStatus.reordering;
-      notifyListeners();
 
       // Create a copy of the current tasks list
       final List<TaskEntity> reorderedTasks = List.from(_tasks);
@@ -319,6 +324,16 @@ class TaskProvider extends ChangeNotifier {
 
       // Insert at new position
       reorderedTasks.insert(newIndex, task);
+
+      // Update local state immediately for smooth UX
+      _tasks = reorderedTasks
+          .asMap()
+          .entries
+          .map((entry) => entry.value.copyWith(order: entry.key))
+          .toList();
+
+      _status = TaskStatus.loaded;
+      notifyListeners();
 
       // Create map of taskId -> new order
       final Map<String, int> orderUpdates = {};
@@ -333,18 +348,14 @@ class TaskProvider extends ChangeNotifier {
         await _taskDataSource.batchUpdateTaskOrders(userId, orderUpdates);
       }
 
-      // Update local state immediately for smooth UX
-      _tasks = reorderedTasks
-          .asMap()
-          .entries
-          .map((entry) => entry.value.copyWith(order: entry.key))
-          .toList();
+      // Wait a bit before allowing stream updates again
+      await Future.delayed(const Duration(milliseconds: 500));
+      _isReordering = false;
 
-      _status = TaskStatus.loaded;
-      notifyListeners();
       return true;
     } catch (e) {
       debugPrint('TaskProvider: Error reordering tasks - $e');
+      _isReordering = false;
       _status = TaskStatus.error;
       _errorMessage = 'Erro ao reordenar tarefas: $e';
       notifyListeners();
