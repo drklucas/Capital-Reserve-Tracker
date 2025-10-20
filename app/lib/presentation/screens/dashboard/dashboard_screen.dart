@@ -23,12 +23,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
     decimalDigits: 2,
   );
 
+  bool _tasksWatchInitialized = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadDashboardData();
+
+      // Listen to changes in GoalProvider and TaskProvider
+      context.read<GoalProvider>().addListener(_onGoalsChanged);
+      context.read<TaskProvider>().addListener(_updateDashboardProviders);
     });
+  }
+
+  @override
+  void dispose() {
+    // Remove listeners
+    context.read<GoalProvider>().removeListener(_onGoalsChanged);
+    context.read<TaskProvider>().removeListener(_updateDashboardProviders);
+    super.dispose();
+  }
+
+  void _onGoalsChanged() {
+    if (!mounted) return;
+
+    final authProvider = context.read<AppAuthProvider>();
+    final goalProvider = context.read<GoalProvider>();
+    final taskProvider = context.read<TaskProvider>();
+
+    debugPrint('Dashboard: _onGoalsChanged called, goals count: ${goalProvider.goals.length}');
+
+    // Watch tasks for all goals when goals are loaded
+    if (!_tasksWatchInitialized && goalProvider.goals.isNotEmpty && authProvider.user != null) {
+      _tasksWatchInitialized = true;
+      final userId = authProvider.user!.id;
+
+      debugPrint('Dashboard: Initializing task watch for ${goalProvider.goals.length} goals');
+
+      for (var goal in goalProvider.goals) {
+        debugPrint('Dashboard: Watching tasks for goal "${goal.title}" (${goal.id})');
+        taskProvider.watchTasksByGoal(
+          userId: userId,
+          goalId: goal.id,
+        );
+      }
+    }
+
+    _updateDashboardProviders();
   }
 
   void _loadDashboardData() {
@@ -36,19 +78,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (authProvider.user != null) {
       final userId = authProvider.user!.id;
 
-      // Watch goals (real-time updates)
+      // Watch goals (real-time updates) - this will trigger _onGoalsChanged
       context.read<GoalProvider>().watchGoals(userId);
 
       // Watch transactions (real-time updates)
       context.read<TransactionProvider>().watchTransactions(userId: userId);
 
-      // Update dashboard with current data (will watch tasks automatically)
+      // Update dashboard with current data
       _updateDashboardProviders();
     }
   }
 
   void _updateDashboardProviders() {
-    final authProvider = context.read<AppAuthProvider>();
+    if (!mounted) return;
+
     final goalProvider = context.read<GoalProvider>();
     final transactionProvider = context.read<TransactionProvider>();
     final taskProvider = context.read<TaskProvider>();
@@ -57,26 +100,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
     dashboardProvider.updateGoals(goalProvider.goals);
     dashboardProvider.updateTransactions(transactionProvider.transactions);
 
-    // Watch tasks for goals that don't have tasks loaded yet
-    if (authProvider.user != null) {
-      for (var goal in goalProvider.goals) {
-        final hasTasksForGoal = taskProvider.tasks.any((t) => t.goalId == goal.id);
-        if (!hasTasksForGoal) {
-          taskProvider.watchTasksByGoal(
-            userId: authProvider.user!.id,
-            goalId: goal.id,
-          );
-        }
-      }
-    }
-
     // Build tasks map by goal
     final tasksByGoal = <String, List<TaskEntity>>{};
     for (var goal in goalProvider.goals) {
-      tasksByGoal[goal.id] = taskProvider.tasks
+      final tasksForGoal = taskProvider.tasks
           .where((task) => task.goalId == goal.id)
           .toList();
+      tasksByGoal[goal.id] = tasksForGoal;
+
+      // Debug log
+      debugPrint('Dashboard: Goal "${goal.title}" (${goal.id}) has ${tasksForGoal.length} tasks');
     }
+
+    debugPrint('Dashboard: Total tasks in TaskProvider: ${taskProvider.tasks.length}');
+    debugPrint('Dashboard: Total goals: ${goalProvider.goals.length}');
+
     dashboardProvider.updateTasksByGoal(tasksByGoal);
   }
 
@@ -105,13 +143,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
         child: SafeArea(
-          child: Consumer3<DashboardProvider, GoalProvider, TaskProvider>(
-            builder: (context, dashboardProvider, goalProvider, taskProvider, _) {
-              // Update dashboard providers when goals/tasks change
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                _updateDashboardProviders();
-              });
-
+          child: Consumer<DashboardProvider>(
+            builder: (context, dashboardProvider, _) {
               final summary = dashboardProvider.summary;
 
               return RefreshIndicator(

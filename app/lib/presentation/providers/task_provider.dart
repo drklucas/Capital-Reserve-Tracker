@@ -51,6 +51,7 @@ class TaskProvider extends ChangeNotifier {
   List<TaskEntity> _tasks = [];
   String? _errorMessage;
   StreamSubscription? _tasksSubscription;
+  Map<String, StreamSubscription> _taskSubscriptionsByGoal = {};
   bool _isReordering = false;
 
   // Getters
@@ -239,48 +240,61 @@ class TaskProvider extends ChangeNotifier {
     required String userId,
   }) {
     debugPrint('TaskProvider: Starting to watch tasks for goalId=$goalId, userId=$userId');
+
+    // Check if already watching this goal
+    if (_taskSubscriptionsByGoal.containsKey(goalId)) {
+      debugPrint('TaskProvider: Already watching goal $goalId, skipping');
+      return;
+    }
+
     _status = TaskStatus.loading;
     _errorMessage = null;
-    notifyListeners();
 
-    // Cancel previous subscription if exists
-    _tasksSubscription?.cancel();
-
-    _tasksSubscription = watchTasksByGoalUseCase(
+    final subscription = watchTasksByGoalUseCase(
       goalId: goalId,
       userId: userId,
     ).listen(
       (result) {
         result.fold(
           (failure) {
-            debugPrint('TaskProvider: Error loading tasks - ${failure.message}');
+            debugPrint('TaskProvider: Error loading tasks for goal $goalId - ${failure.message}');
             _status = TaskStatus.error;
             _errorMessage = failure.message;
-            _tasks = [];
             notifyListeners();
           },
-          (tasks) {
-            debugPrint('TaskProvider: Loaded ${tasks.length} tasks');
-            for (var task in tasks) {
-              debugPrint('  - Task: ${task.title} (completed: ${task.isCompleted})');
+          (tasksForGoal) {
+            debugPrint('TaskProvider: Loaded ${tasksForGoal.length} tasks for goal $goalId');
+            for (var task in tasksForGoal) {
+              debugPrint('  - Task: ${task.title} (goalId: ${task.goalId}, completed: ${task.isCompleted})');
             }
+
             // Skip stream updates during reordering to prevent visual glitches
             if (!_isReordering) {
               _status = TaskStatus.loaded;
-              _tasks = tasks;
+
+              // Remove old tasks for this goal
+              _tasks.removeWhere((t) => t.goalId == goalId);
+
+              // Add new tasks for this goal
+              _tasks.addAll(tasksForGoal);
+
+              debugPrint('TaskProvider: Total tasks now: ${_tasks.length}');
               notifyListeners();
             }
           },
         );
       },
       onError: (error) {
-        debugPrint('TaskProvider: Stream error - $error');
+        debugPrint('TaskProvider: Stream error for goal $goalId - $error');
         _status = TaskStatus.error;
         _errorMessage = error.toString();
-        _tasks = [];
         notifyListeners();
       },
     );
+
+    // Store subscription
+    _taskSubscriptionsByGoal[goalId] = subscription;
+    notifyListeners();
   }
 
   /// Get tasks by priority
@@ -375,6 +389,11 @@ class TaskProvider extends ChangeNotifier {
   @override
   void dispose() {
     _tasksSubscription?.cancel();
+    // Cancel all goal-specific subscriptions
+    for (var subscription in _taskSubscriptionsByGoal.values) {
+      subscription.cancel();
+    }
+    _taskSubscriptionsByGoal.clear();
     super.dispose();
   }
 }
