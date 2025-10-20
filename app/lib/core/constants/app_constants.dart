@@ -19,6 +19,8 @@ class AppConstants {
   static const String settingsRoute = '/settings';
   static const String goalsRoute = '/goals';
   static const String transactionsRoute = '/transactions';
+  static const String dashboardRoute = '/dashboard';
+  static const String importTransactionsRoute = '/import-transactions';
 
   /// Animation Durations
   static const Duration shortAnimation = Duration(milliseconds: 200);

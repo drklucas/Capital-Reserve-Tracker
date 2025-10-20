@@ -51,6 +51,20 @@ cd app
 ## Technical Details
 
 - **SDK Version**: Dart ^3.9.2
+- **Flutter Version**: 3.0+
+- **Architecture**: Clean Architecture with MVVM pattern
+- **State Management**: Provider (ChangeNotifier)
+- **Backend**: Firebase (Auth, Firestore, Storage, Crashlytics, Analytics, Messaging)
+- **Functional Programming**: dartz (Either pattern for error handling)
+- **Local Storage**: flutter_secure_storage
+- **Notifications**: flutter_local_notifications
 - **Linting**: Uses `package:flutter_lints` with recommended rules
-- **Dependencies**: Minimal setup with cupertino_icons
-- **State Management**: Currently using StatefulWidget (default Flutter)
+
+### Key Dependencies
+- **firebase_core**: ^3.13.1 - Firebase initialization
+- **firebase_auth**: ^5.3.5 - User authentication
+- **cloud_firestore**: ^5.7.1 - NoSQL database
+- **provider**: ^6.1.2 - State management and dependency injection
+- **dartz**: ^0.10.1 - Functional programming (Either, Option)
+- **equatable**: ^2.0.7 - Value equality without boilerplate
+- **intl**: ^0.19.0 - Internationalization and date formatting

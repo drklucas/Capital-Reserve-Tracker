@@ -51,6 +51,7 @@ import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/transaction_provider.dart';
 import 'presentation/providers/goal_provider.dart';
 import 'presentation/providers/task_provider.dart';
+import 'presentation/providers/dashboard_provider.dart';
 import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/auth/register_screen.dart';
 import 'presentation/screens/auth/forgot_password_screen.dart';
@@ -58,6 +59,8 @@ import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/transactions/transactions_screen.dart';
 import 'presentation/screens/transactions/add_transaction_screen.dart';
 import 'presentation/screens/goals/goals_screen.dart';
+import 'presentation/screens/dashboard/dashboard_screen.dart';
+import 'presentation/screens/transactions/import_transactions_screen.dart';
 
 /// Main entry point of the application
 ///
@@ -247,6 +250,10 @@ void main() async {
             taskRepository: taskRepository,
           ),
         ),
+
+        ChangeNotifierProvider<DashboardProvider>(
+          create: (_) => DashboardProvider(),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -324,6 +331,9 @@ class MyApp extends StatelessWidget {
         '/transactions': (context) => const TransactionsScreen(),
         '/add-transaction': (context) => const AddTransactionScreen(),
         '/goals': (context) => const GoalsScreen(),
+        AppConstants.dashboardRoute: (context) => const DashboardScreen(),
+        AppConstants.importTransactionsRoute: (context) =>
+            const ImportTransactionsScreen(),
       },
     );
   }

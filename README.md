@@ -55,7 +55,7 @@ For detailed architecture information, see [Architecture Documentation](docs/arc
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/Capital-Reserve-Tracker.git
+   git clone https://github.com/drklucas/Capital-Reserve-Tracker.git
    cd Capital-Reserve-Tracker
    ```
 
@@ -274,14 +274,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 For support, please:
 1. Check the [documentation](docs/)
-2. Search existing [issues](https://github.com/yourusername/Capital-Reserve-Tracker/issues)
+2. Search existing [issues](https://github.com/drklucas/Capital-Reserve-Tracker/issues)
 3. Create a new issue with detailed information
 
 ## Contact
 
-- Project Maintainer: [Your Name]
-- Email: [your.email@example.com]
-- GitHub: [@yourusername](https://github.com/yourusername)
+- Project Maintainer: Lucas Neves
+- Email: lucasnevesp3@gmail.com
+- GitHub: [@drklucas](https://github.com/drklucas)
 
 ---
 

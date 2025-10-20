@@ -64,6 +64,20 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 color: Colors.white.withOpacity(0.2),
                 shape: BoxShape.circle,
               ),
+              child: const Icon(Icons.upload_file, size: 20),
+            ),
+            onPressed: () => Navigator.pushNamed(
+              context,
+              AppConstants.importTransactionsRoute,
+            ),
+          ),
+          IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
               child: const Icon(Icons.filter_list, size: 20),
             ),
             onPressed: _showFilterDialog,
@@ -156,18 +170,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                       );
                     }
 
-                    return ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: provider.transactions.length,
-                      itemBuilder: (context, index) {
-                        final transaction = provider.transactions[index];
-                        return _TransactionListItem(
-                          transaction: transaction,
-                          onTap: () => _showTransactionDetails(transaction),
-                          onDelete: () => _deleteTransaction(transaction.id),
-                        );
-                      },
-                    );
+                    return _buildGroupedTransactionsList(provider.transactions);
                   },
                 ),
               ),
@@ -210,6 +213,93 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildGroupedTransactionsList(List<TransactionEntity> transactions) {
+    // Agrupar transações por data
+    final Map<String, List<TransactionEntity>> groupedTransactions = {};
+
+    for (var transaction in transactions) {
+      final dateKey = _formatDateKey(transaction.date);
+      if (!groupedTransactions.containsKey(dateKey)) {
+        groupedTransactions[dateKey] = [];
+      }
+      groupedTransactions[dateKey]!.add(transaction);
+    }
+
+    // Ordenar as chaves de data (mais recente primeiro)
+    final sortedKeys = groupedTransactions.keys.toList()
+      ..sort((a, b) {
+        final dateA = _parseDateKey(a);
+        final dateB = _parseDateKey(b);
+        return dateB.compareTo(dateA);
+      });
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: sortedKeys.length,
+      itemBuilder: (context, index) {
+        final dateKey = sortedKeys[index];
+        final transactionsForDate = groupedTransactions[dateKey]!;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Label da data
+            Padding(
+              padding: EdgeInsets.only(left: 4, bottom: 12, top: index == 0 ? 0 : 8),
+              child: Text(
+                _formatDateLabel(dateKey),
+                style: TextStyle(
+                  color: _formatDateLabel(dateKey) == 'Hoje'
+                      ? Colors.white
+                      : Colors.white.withOpacity(0.7),
+                  fontSize: 14,
+                  fontWeight: _formatDateLabel(dateKey) == 'Hoje'
+                      ? FontWeight.bold
+                      : FontWeight.w600,
+                ),
+              ),
+            ),
+            // Transações do dia
+            ...transactionsForDate.map((transaction) => _TransactionListItem(
+              transaction: transaction,
+              onTap: () => _showTransactionDetails(transaction),
+              onDelete: () => _deleteTransaction(transaction.id),
+            )),
+          ],
+        );
+      },
+    );
+  }
+
+  String _formatDateKey(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  DateTime _parseDateKey(String key) {
+    final parts = key.split('-');
+    return DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
+  }
+
+  String _formatDateLabel(String dateKey) {
+    final date = _parseDateKey(dateKey);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final dateOnly = DateTime(date.year, date.month, date.day);
+
+    if (dateOnly == today) {
+      return 'Hoje';
+    } else if (dateOnly == yesterday) {
+      return 'Ontem';
+    } else {
+      final months = [
+        '', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+      ];
+      return '${date.day} de ${months[date.month]} de ${date.year}';
+    }
   }
 
   Widget _buildSummaryCard() {

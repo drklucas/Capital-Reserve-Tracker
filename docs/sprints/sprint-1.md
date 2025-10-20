@@ -1,6 +1,6 @@
 # Sprint 1 Documentation
 
-**Sprint Duration:** October 18, 2024
+**Sprint Duration:** October 18, 2025
 **Sprint Goal:** Set up secure Flutter + Firebase infrastructure with Clean Architecture
 
 ## Sprint Objectives
@@ -231,7 +231,7 @@ lib/
 
 ### Estimated Timeline
 
-- Sprint 2 Start: October 19, 2024
+- Sprint 2 Start: October 19, 2025
 - Duration: 1 week
 - Focus: Core functionality and Firebase integration
 

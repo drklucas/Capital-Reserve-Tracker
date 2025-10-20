@@ -16,7 +16,7 @@ Before you begin, ensure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/Capital-Reserve-Tracker.git
+git clone https://github.com/drklucas/Capital-Reserve-Tracker.git
 cd Capital-Reserve-Tracker
 ```
 

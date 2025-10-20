@@ -125,11 +125,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     margin: const EdgeInsets.only(right: 16),
                     child: CircleAvatar(
                       radius: 20,
-                      backgroundColor: Colors.white,
+                      backgroundColor: const Color(0xFF5A67D8),
                       child: Text(
                         authProvider.userInitials,
-                        style: TextStyle(
-                          color: theme.primaryColor,
+                        style: const TextStyle(
+                          color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -610,7 +610,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         const SizedBox(height: 16),
         GridView.count(
           shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
+          physics: const ClampingScrollPhysics(),
           crossAxisCount: 2,
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
@@ -645,14 +645,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
             _AnimatedQuickActionCard(
               icon: Icons.analytics_rounded,
-              title: 'Estatísticas',
+              title: 'Dashboard',
               gradient: const LinearGradient(
                 colors: [Color(0xFF8B5CF6), Color(0xFF6B46C1)],
               ),
               delay: 300,
-              onTap: () {
-                // TODO: Navigate to analytics
-              },
+              onTap: () => Navigator.pushNamed(context, AppConstants.dashboardRoute),
             ),
           ],
         ),
@@ -875,7 +873,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             const SizedBox(height: 16),
             ListView.separated(
               shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
+              physics: const ClampingScrollPhysics(),
               itemCount: activeGoals.length > 3 ? 3 : activeGoals.length,
               separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
