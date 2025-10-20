@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../providers/goal_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/task_provider.dart';
 import '../../../domain/entities/goal_entity.dart';
 import 'add_goal_screen.dart';
 import 'goal_detail_screen.dart';
@@ -24,9 +25,22 @@ class _GoalsScreenState extends State<GoalsScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = context.read<AppAuthProvider>();
       final goalProvider = context.read<GoalProvider>();
+      final taskProvider = context.read<TaskProvider>();
 
       if (authProvider.user != null) {
-        goalProvider.watchGoals(authProvider.user!.id);
+        final userId = authProvider.user!.id;
+
+        // Watch goals
+        goalProvider.watchGoals(userId);
+
+        // Watch tasks for each goal when goals are loaded
+        goalProvider.addListener(() {
+          if (goalProvider.goals.isNotEmpty) {
+            for (var goal in goalProvider.goals) {
+              taskProvider.watchTasksByGoal(userId: userId, goalId: goal.id);
+            }
+          }
+        });
       }
     });
   }
@@ -508,41 +522,113 @@ class _GoalsScreenState extends State<GoalsScreen> {
 
               const SizedBox(height: 16),
 
-              // Progress bar (based on days)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              // Progress bar (dual layer: days elapsed + tasks completed)
+              Consumer<TaskProvider>(
+                builder: (context, taskProvider, _) {
+                  // Get tasks for this goal
+                  final goalTasks = taskProvider.tasks.where((t) => t.goalId == goal.id).toList();
+                  final completedTasks = goalTasks.where((t) => t.isCompleted).length;
+                  final totalTasks = goalTasks.length;
+
+                  // Calculate progress percentages
+                  final daysProgress = (goal.daysElapsed / goal.totalDays).clamp(0.0, 1.0);
+                  final tasksProgress = totalTasks > 0 ? (completedTasks / totalTasks).clamp(0.0, 1.0) : 0.0;
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Progresso',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
-                          fontSize: 12,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Progresso',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 12,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              if (totalTasks > 0) ...[
+                                Icon(
+                                  Icons.check_circle_outline,
+                                  size: 14,
+                                  color: Colors.white.withOpacity(0.9),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '$completedTasks/$totalTasks',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.9),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                              ],
+                              Icon(
+                                Icons.calendar_today,
+                                size: 14,
+                                color: Colors.white.withOpacity(0.7),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${(daysProgress * 100).toStringAsFixed(0)}%',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.7),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      // Dual-layer progress bar
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: SizedBox(
+                          height: 8,
+                          child: Stack(
+                            children: [
+                              // Background (full width)
+                              Container(
+                                width: double.infinity,
+                                color: Colors.white.withOpacity(0.15),
+                              ),
+                              // Days elapsed layer (gray)
+                              FractionallySizedBox(
+                                widthFactor: daysProgress,
+                                child: Container(
+                                  color: Colors.white.withOpacity(0.35),
+                                ),
+                              ),
+                              // Tasks completed layer (white)
+                              FractionallySizedBox(
+                                widthFactor: tasksProgress,
+                                child: Container(
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      Text(
-                        '${((goal.daysElapsed / goal.totalDays) * 100).toStringAsFixed(0)}%',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                      if (totalTasks > 0) ...[
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            // Legend
+                            _buildProgressLegend('Tarefas', Colors.white),
+                            const SizedBox(width: 12),
+                            _buildProgressLegend('Tempo', Colors.white.withOpacity(0.35)),
+                          ],
                         ),
-                      ),
+                      ],
                     ],
-                  ),
-                  const SizedBox(height: 6),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: LinearProgressIndicator(
-                      value: (goal.daysElapsed / goal.totalDays).clamp(0.0, 1.0),
-                      minHeight: 6,
-                      backgroundColor: Colors.white.withOpacity(0.3),
-                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  ),
-                ],
+                  );
+                },
               ),
             ],
           ),
@@ -589,6 +675,30 @@ class _GoalsScreenState extends State<GoalsScreen> {
           fontWeight: FontWeight.w600,
         ),
       ),
+    );
+  }
+
+  Widget _buildProgressLegend(String label, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 12,
+          height: 6,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(3),
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            color: Colors.white.withOpacity(0.6),
+          ),
+        ),
+      ],
     );
   }
 
