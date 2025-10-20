@@ -3,10 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/date_utils.dart';
+import '../../../core/services/mock_data_service.dart';
 import '../../../domain/entities/goal_entity.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/goal_provider.dart';
 import '../../providers/transaction_provider.dart';
+import '../../providers/task_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -121,16 +123,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               return PopupMenuButton<String>(
                 child: Hero(
                   tag: 'user_avatar',
-                  child: Container(
-                    margin: const EdgeInsets.only(right: 16),
-                    child: CircleAvatar(
-                      radius: 20,
-                      backgroundColor: const Color(0xFF5A67D8),
-                      child: Text(
-                        authProvider.userInitials,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                  child: GestureDetector(
+                    onLongPress: () {
+                      // Hidden feature: show mock data option on long press
+                      _showMockDataDialog(context);
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 16),
+                      child: CircleAvatar(
+                        radius: 20,
+                        backgroundColor: const Color(0xFF5A67D8),
+                        child: Text(
+                          authProvider.userInitials,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -923,6 +931,243 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
       ),
     );
+  }
+
+  // Hidden feature: populate mock data
+  void _showMockDataDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF1f2544),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.science, color: Colors.amber),
+              SizedBox(width: 12),
+              Text(
+                'Modo Demo',
+                style: TextStyle(color: Colors.white),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Deseja popular o banco de dados com dados fictícios de demonstração?',
+                style: TextStyle(color: Colors.white70),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.amber.withOpacity(0.3),
+                  ),
+                ),
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Isso irá criar:',
+                      style: TextStyle(
+                        color: Colors.amber,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      '• 1 ano de transações variadas',
+                      style: TextStyle(color: Colors.white70, fontSize: 13),
+                    ),
+                    Text(
+                      '• 5 metas com diferentes status',
+                      style: TextStyle(color: Colors.white70, fontSize: 13),
+                    ),
+                    Text(
+                      '• Tarefas para cada meta',
+                      style: TextStyle(color: Colors.white70, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(color: Colors.white54),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+                await _populateMockData(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.amber,
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Popular Dados'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _populateMockData(BuildContext context) async {
+    final authProvider = context.read<AppAuthProvider>();
+    final goalProvider = context.read<GoalProvider>();
+    final transactionProvider = context.read<TransactionProvider>();
+    final taskProvider = context.read<TaskProvider>();
+
+    if (authProvider.user == null) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Usuário não autenticado'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    final userId = authProvider.user!.id;
+
+    // Show loading dialog
+    if (context.mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext dialogContext) {
+          return const Center(
+            child: Card(
+              color: Color(0xFF1f2544),
+              child: Padding(
+                padding: EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(color: Colors.amber),
+                    SizedBox(height: 16),
+                    Text(
+                      'Criando dados de demonstração...',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    try {
+      final mockService = MockDataService();
+
+      // Generate mock data
+      debugPrint('MockData: Generating transactions...');
+      final transactions = mockService.generateYearTransactions(userId);
+
+      debugPrint('MockData: Generating goals...');
+      final goals = mockService.generateGoals(userId);
+
+      debugPrint('MockData: Generating tasks...');
+      final tasks = mockService.generateTasksForGoals(goals, userId);
+
+      // Save transactions
+      debugPrint('MockData: Saving ${transactions.length} transactions...');
+      for (var transaction in transactions) {
+        final success = await transactionProvider.createTransaction(
+          userId: transaction.userId,
+          type: transaction.type,
+          amount: transaction.amount,
+          description: transaction.description,
+          date: transaction.date,
+          category: transaction.category,
+        );
+        if (!success) {
+          debugPrint('MockData: Failed to create transaction');
+        }
+      }
+
+      // Save goals
+      debugPrint('MockData: Saving ${goals.length} goals...');
+      for (var goal in goals) {
+        final success = await goalProvider.createGoal(goal);
+        if (!success) {
+          debugPrint('MockData: Failed to create goal');
+        }
+      }
+
+      // Wait a bit for goals to be created
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // Save tasks
+      debugPrint('MockData: Saving ${tasks.length} tasks...');
+      for (var task in tasks) {
+        final success = await taskProvider.createTask(
+          userId: task.userId,
+          goalId: task.goalId,
+          title: task.title,
+          description: task.description,
+          priority: task.priority,
+          dueDate: task.dueDate,
+        );
+        if (!success) {
+          debugPrint('MockData: Failed to create task');
+        }
+      }
+
+      // Close loading dialog
+      if (context.mounted) {
+        Navigator.pop(context);
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Dados criados com sucesso!\n'
+              '${transactions.length} transações, ${goals.length} metas, ${tasks.length} tarefas',
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+
+      debugPrint('MockData: All data created successfully!');
+    } catch (e) {
+      debugPrint('MockData: Error creating mock data: $e');
+
+      // Close loading dialog
+      if (context.mounted) {
+        Navigator.pop(context);
+
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao criar dados: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 }
 
