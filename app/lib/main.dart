@@ -4,6 +4,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 // Core
 import 'core/config/env_config.dart';
@@ -26,24 +29,34 @@ import 'domain/usecases/goal/get_goals_usecase.dart';
 import 'domain/usecases/goal/get_goal_by_id_usecase.dart';
 import 'domain/usecases/goal/watch_goals_usecase.dart';
 import 'domain/usecases/goal/update_goal_status_usecase.dart';
+import 'domain/usecases/task/create_task_usecase.dart';
+import 'domain/usecases/task/update_task_usecase.dart';
+import 'domain/usecases/task/delete_task_usecase.dart';
+import 'domain/usecases/task/toggle_task_usecase.dart';
+import 'domain/usecases/task/get_tasks_by_goal_usecase.dart';
+import 'domain/usecases/task/watch_tasks_by_goal_usecase.dart';
 
 // Data
 import 'data/datasources/auth_remote_datasource.dart';
 import 'data/datasources/transaction_remote_datasource.dart';
 import 'data/datasources/goal_remote_datasource.dart';
+import 'data/datasources/task_remote_datasource.dart';
 import 'data/repositories/auth_repository_impl.dart';
 import 'data/repositories/transaction_repository_impl.dart';
 import 'data/repositories/goal_repository_impl.dart';
+import 'data/repositories/task_repository_impl.dart';
 
 // Presentation
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/transaction_provider.dart';
 import 'presentation/providers/goal_provider.dart';
+import 'presentation/providers/task_provider.dart';
 import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/auth/register_screen.dart';
 import 'presentation/screens/auth/forgot_password_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/transactions/transactions_screen.dart';
+import 'presentation/screens/transactions/add_transaction_screen.dart';
 import 'presentation/screens/goals/goals_screen.dart';
 
 /// Main entry point of the application
@@ -88,167 +101,150 @@ void main() async {
     return;
   }
 
+  // Initialize locale data for Brazilian Portuguese
+  await initializeDateFormatting('pt_BR', null);
+  Intl.defaultLocale = 'pt_BR';
+
+  // Initialize Firebase instances
+  final firebaseAuth = FirebaseAuth.instance;
+  final firestore = FirebaseFirestore.instance;
+
+  // Initialize data sources
+  final authDataSource = AuthRemoteDataSourceImpl(
+    firebaseAuth: firebaseAuth,
+    firestore: firestore,
+  );
+  final transactionDataSource = TransactionRemoteDataSource(firestore: firestore);
+  final goalDataSource = GoalRemoteDataSource(firestore: firestore);
+  final taskDataSource = TaskRemoteDataSource(firestore: firestore);
+
+  // Initialize repositories
+  final authRepository = AuthRepositoryImpl(remoteDataSource: authDataSource);
+  final transactionRepository = TransactionRepositoryImpl(remoteDataSource: transactionDataSource);
+  final goalRepository = GoalRepositoryImpl(remoteDataSource: goalDataSource);
+  final taskRepository = TaskRepositoryImpl(remoteDataSource: taskDataSource);
+
+  // Initialize use cases - Auth
+  final loginUseCase = LoginUseCase(authRepository);
+  final registerUseCase = RegisterUseCase(authRepository);
+  final logoutUseCase = LogoutUseCase(authRepository);
+
+  // Initialize use cases - Transaction
+  final createTransactionUseCase = CreateTransactionUseCase(transactionRepository);
+  final updateTransactionUseCase = UpdateTransactionUseCase(transactionRepository);
+  final deleteTransactionUseCase = DeleteTransactionUseCase(transactionRepository);
+  final getTransactionsUseCase = GetTransactionsUseCase(transactionRepository);
+  final watchTransactionsUseCase = WatchTransactionsUseCase(transactionRepository);
+
+  // Initialize use cases - Goal
+  final createGoalUseCase = CreateGoalUseCase(goalRepository);
+  final updateGoalUseCase = UpdateGoalUseCase(goalRepository);
+  final deleteGoalUseCase = DeleteGoalUseCase(goalRepository);
+  final getGoalsUseCase = GetGoalsUseCase(goalRepository);
+  final getGoalByIdUseCase = GetGoalByIdUseCase(goalRepository);
+  final watchGoalsUseCase = WatchGoalsUseCase(goalRepository);
+  final updateGoalStatusUseCase = UpdateGoalStatusUseCase(goalRepository);
+
+  // Initialize use cases - Task
+  final createTaskUseCase = CreateTaskUseCase(taskRepository);
+  final updateTaskUseCase = UpdateTaskUseCase(taskRepository);
+  final deleteTaskUseCase = DeleteTaskUseCase(taskRepository);
+  final toggleTaskUseCase = ToggleTaskUseCase(taskRepository);
+  final getTasksByGoalUseCase = GetTasksByGoalUseCase(taskRepository);
+  final watchTasksByGoalUseCase = WatchTasksByGoalUseCase(taskRepository);
+
   // Run the app with providers
   runApp(
     MultiProvider(
       providers: [
         // Firebase instances
-        Provider<FirebaseAuth>.value(value: FirebaseAuth.instance),
-        Provider<FirebaseFirestore>.value(value: FirebaseFirestore.instance),
+        Provider<FirebaseAuth>.value(value: firebaseAuth),
+        Provider<FirebaseFirestore>.value(value: firestore),
 
         // Data sources
-        Provider<AuthRemoteDataSource>(
-          create: (context) => AuthRemoteDataSourceImpl(
-            firebaseAuth: context.read<FirebaseAuth>(),
-            firestore: context.read<FirebaseFirestore>(),
-          ),
-        ),
+        Provider<AuthRemoteDataSource>.value(value: authDataSource),
+        Provider<TransactionRemoteDataSource>.value(value: transactionDataSource),
+        Provider<GoalRemoteDataSource>.value(value: goalDataSource),
+        Provider<TaskRemoteDataSource>.value(value: taskDataSource),
 
         // Repositories
-        Provider<AuthRepositoryImpl>(
-          create: (context) => AuthRepositoryImpl(
-            remoteDataSource: context.read<AuthRemoteDataSource>(),
-          ),
-        ),
+        Provider<AuthRepositoryImpl>.value(value: authRepository),
+        Provider<TransactionRepositoryImpl>.value(value: transactionRepository),
+        Provider<GoalRepositoryImpl>.value(value: goalRepository),
+        Provider<TaskRepositoryImpl>.value(value: taskRepository),
 
-        // Use cases
-        Provider<LoginUseCase>(
-          create: (context) => LoginUseCase(
-            context.read<AuthRepositoryImpl>(),
-          ),
-        ),
-        Provider<RegisterUseCase>(
-          create: (context) => RegisterUseCase(
-            context.read<AuthRepositoryImpl>(),
-          ),
-        ),
-        Provider<LogoutUseCase>(
-          create: (context) => LogoutUseCase(
-            context.read<AuthRepositoryImpl>(),
-          ),
-        ),
+        // Use cases - Auth
+        Provider<LoginUseCase>.value(value: loginUseCase),
+        Provider<RegisterUseCase>.value(value: registerUseCase),
+        Provider<LogoutUseCase>.value(value: logoutUseCase),
 
-        // Transaction data sources
-        Provider<TransactionRemoteDataSource>(
-          create: (context) => TransactionRemoteDataSource(
-            firestore: context.read<FirebaseFirestore>(),
-          ),
-        ),
+        // Use cases - Transaction
+        Provider<CreateTransactionUseCase>.value(value: createTransactionUseCase),
+        Provider<UpdateTransactionUseCase>.value(value: updateTransactionUseCase),
+        Provider<DeleteTransactionUseCase>.value(value: deleteTransactionUseCase),
+        Provider<GetTransactionsUseCase>.value(value: getTransactionsUseCase),
+        Provider<WatchTransactionsUseCase>.value(value: watchTransactionsUseCase),
 
-        // Transaction repositories
-        Provider<TransactionRepositoryImpl>(
-          create: (context) => TransactionRepositoryImpl(
-            remoteDataSource: context.read<TransactionRemoteDataSource>(),
-          ),
-        ),
+        // Use cases - Goal
+        Provider<CreateGoalUseCase>.value(value: createGoalUseCase),
+        Provider<UpdateGoalUseCase>.value(value: updateGoalUseCase),
+        Provider<DeleteGoalUseCase>.value(value: deleteGoalUseCase),
+        Provider<GetGoalsUseCase>.value(value: getGoalsUseCase),
+        Provider<GetGoalByIdUseCase>.value(value: getGoalByIdUseCase),
+        Provider<WatchGoalsUseCase>.value(value: watchGoalsUseCase),
+        Provider<UpdateGoalStatusUseCase>.value(value: updateGoalStatusUseCase),
 
-        // Transaction use cases
-        Provider<CreateTransactionUseCase>(
-          create: (context) => CreateTransactionUseCase(
-            context.read<TransactionRepositoryImpl>(),
-          ),
-        ),
-        Provider<UpdateTransactionUseCase>(
-          create: (context) => UpdateTransactionUseCase(
-            context.read<TransactionRepositoryImpl>(),
-          ),
-        ),
-        Provider<DeleteTransactionUseCase>(
-          create: (context) => DeleteTransactionUseCase(
-            context.read<TransactionRepositoryImpl>(),
-          ),
-        ),
-        Provider<GetTransactionsUseCase>(
-          create: (context) => GetTransactionsUseCase(
-            context.read<TransactionRepositoryImpl>(),
-          ),
-        ),
-        Provider<WatchTransactionsUseCase>(
-          create: (context) => WatchTransactionsUseCase(
-            context.read<TransactionRepositoryImpl>(),
-          ),
-        ),
-
-        // Goal data sources
-        Provider<GoalRemoteDataSource>(
-          create: (context) => GoalRemoteDataSource(
-            firestore: context.read<FirebaseFirestore>(),
-          ),
-        ),
-
-        // Goal repositories
-        Provider<GoalRepositoryImpl>(
-          create: (context) => GoalRepositoryImpl(
-            remoteDataSource: context.read<GoalRemoteDataSource>(),
-          ),
-        ),
-
-        // Goal use cases
-        Provider<CreateGoalUseCase>(
-          create: (context) => CreateGoalUseCase(
-            context.read<GoalRepositoryImpl>(),
-          ),
-        ),
-        Provider<UpdateGoalUseCase>(
-          create: (context) => UpdateGoalUseCase(
-            context.read<GoalRepositoryImpl>(),
-          ),
-        ),
-        Provider<DeleteGoalUseCase>(
-          create: (context) => DeleteGoalUseCase(
-            context.read<GoalRepositoryImpl>(),
-          ),
-        ),
-        Provider<GetGoalsUseCase>(
-          create: (context) => GetGoalsUseCase(
-            context.read<GoalRepositoryImpl>(),
-          ),
-        ),
-        Provider<GetGoalByIdUseCase>(
-          create: (context) => GetGoalByIdUseCase(
-            context.read<GoalRepositoryImpl>(),
-          ),
-        ),
-        Provider<WatchGoalsUseCase>(
-          create: (context) => WatchGoalsUseCase(
-            context.read<GoalRepositoryImpl>(),
-          ),
-        ),
-        Provider<UpdateGoalStatusUseCase>(
-          create: (context) => UpdateGoalStatusUseCase(
-            context.read<GoalRepositoryImpl>(),
-          ),
-        ),
+        // Use cases - Task
+        Provider<CreateTaskUseCase>.value(value: createTaskUseCase),
+        Provider<UpdateTaskUseCase>.value(value: updateTaskUseCase),
+        Provider<DeleteTaskUseCase>.value(value: deleteTaskUseCase),
+        Provider<ToggleTaskUseCase>.value(value: toggleTaskUseCase),
+        Provider<GetTasksByGoalUseCase>.value(value: getTasksByGoalUseCase),
+        Provider<WatchTasksByGoalUseCase>.value(value: watchTasksByGoalUseCase),
 
         // Providers (State Management)
         ChangeNotifierProvider<AppAuthProvider>(
-          create: (context) => AppAuthProvider(
-            loginUseCase: context.read<LoginUseCase>(),
-            registerUseCase: context.read<RegisterUseCase>(),
-            logoutUseCase: context.read<LogoutUseCase>(),
-            authRepository: context.read<AuthRepositoryImpl>(),
+          create: (_) => AppAuthProvider(
+            loginUseCase: loginUseCase,
+            registerUseCase: registerUseCase,
+            logoutUseCase: logoutUseCase,
+            authRepository: authRepository,
           ),
         ),
 
         ChangeNotifierProvider<TransactionProvider>(
-          create: (context) => TransactionProvider(
-            createTransactionUseCase: context.read<CreateTransactionUseCase>(),
-            updateTransactionUseCase: context.read<UpdateTransactionUseCase>(),
-            deleteTransactionUseCase: context.read<DeleteTransactionUseCase>(),
-            getTransactionsUseCase: context.read<GetTransactionsUseCase>(),
-            watchTransactionsUseCase: context.read<WatchTransactionsUseCase>(),
+          create: (_) => TransactionProvider(
+            createTransactionUseCase: createTransactionUseCase,
+            updateTransactionUseCase: updateTransactionUseCase,
+            deleteTransactionUseCase: deleteTransactionUseCase,
+            getTransactionsUseCase: getTransactionsUseCase,
+            watchTransactionsUseCase: watchTransactionsUseCase,
           ),
         ),
 
         ChangeNotifierProvider<GoalProvider>(
-          create: (context) => GoalProvider(
-            createGoalUseCase: context.read<CreateGoalUseCase>(),
-            updateGoalUseCase: context.read<UpdateGoalUseCase>(),
-            deleteGoalUseCase: context.read<DeleteGoalUseCase>(),
-            getGoalsUseCase: context.read<GetGoalsUseCase>(),
-            getGoalByIdUseCase: context.read<GetGoalByIdUseCase>(),
-            watchGoalsUseCase: context.read<WatchGoalsUseCase>(),
-            updateGoalStatusUseCase: context.read<UpdateGoalStatusUseCase>(),
+          create: (_) => GoalProvider(
+            createGoalUseCase: createGoalUseCase,
+            updateGoalUseCase: updateGoalUseCase,
+            deleteGoalUseCase: deleteGoalUseCase,
+            getGoalsUseCase: getGoalsUseCase,
+            getGoalByIdUseCase: getGoalByIdUseCase,
+            watchGoalsUseCase: watchGoalsUseCase,
+            updateGoalStatusUseCase: updateGoalStatusUseCase,
+            goalRemoteDataSource: goalDataSource,
+            taskRemoteDataSource: taskDataSource,
+          ),
+        ),
+
+        ChangeNotifierProvider<TaskProvider>(
+          create: (_) => TaskProvider(
+            createTaskUseCase: createTaskUseCase,
+            updateTaskUseCase: updateTaskUseCase,
+            deleteTaskUseCase: deleteTaskUseCase,
+            toggleTaskUseCase: toggleTaskUseCase,
+            getTasksByGoalUseCase: getTasksByGoalUseCase,
+            watchTasksByGoalUseCase: watchTasksByGoalUseCase,
+            taskRepository: taskRepository,
           ),
         ),
       ],
@@ -266,6 +262,15 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: AppConstants.appName,
       debugShowCheckedModeBanner: AppConstants.showDebugBanner,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('pt', 'BR'),
+      ],
+      locale: const Locale('pt', 'BR'),
       theme: ThemeData(
         primarySwatch: Colors.blue,
         primaryColor: const Color(0xFF2196F3),
@@ -317,6 +322,7 @@ class MyApp extends StatelessWidget {
             const ForgotPasswordScreen(),
         AppConstants.homeRoute: (context) => const HomeScreen(),
         '/transactions': (context) => const TransactionsScreen(),
+        '/add-transaction': (context) => const AddTransactionScreen(),
         '/goals': (context) => const GoalsScreen(),
       },
     );

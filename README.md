@@ -170,14 +170,17 @@ Read the [Security Guidelines](docs/security.md) for more information.
   - Security setup for public repository
   - Complete documentation
 
-- **Sprint 2** 🚧: Core features implementation (In Progress - ~30% Complete)
+- **Sprint 2** ✅: Core features implementation (Completed ~95%)
   - ✅ Financial transaction management (CRUD complete)
   - ✅ 15 transaction categories
   - ✅ Real-time Firestore synchronization
   - ✅ Transaction filtering and calculations
-  - ⏳ Goal management system (Pending)
-  - ⏳ Task management (Pending)
-  - ⏳ Dashboard with charts (Pending)
+  - ✅ Goal management system (CRUD complete)
+  - ✅ Task management with drag-and-drop reordering
+  - ✅ Modern dark theme HomeScreen with animations
+  - ✅ Real-time stats overview with period filters (Today/Week/Month)
+  - ✅ Active goals display with progress tracking
+  - ⏳ Advanced charts and analytics (Pending - Sprint 3)
 
 - **Sprint 3** 📋: Analytics and advanced features (Planned)
 - **Sprint 4** 📋: Polish, optimization, deployment (Planned)
@@ -237,11 +240,15 @@ For more issues, see [Setup Guide](docs/setup.md#troubleshooting).
 - [x] 15 transaction categories
 - [x] Real-time data sync
 - [x] Transaction filtering
+- [x] Goal creation and management
+- [x] Task management with reordering
+- [x] Modern dark theme UI
+- [x] HomeScreen dashboard with stats
+- [x] Period-based analytics (Day/Week/Month)
 
 ### In Progress 🚧
-- [ ] Goal creation and management (Sprint 2)
-- [ ] Task management system (Sprint 2)
-- [ ] Dashboard with statistics (Sprint 2)
+- [ ] Advanced charts and visualizations (Sprint 3)
+- [ ] Export functionality (Sprint 3)
 
 ### Planned 📋
 - [ ] Progress visualization with charts (Sprint 2-3)

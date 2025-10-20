@@ -8,6 +8,8 @@ import '../../domain/usecases/goal/get_goals_usecase.dart';
 import '../../domain/usecases/goal/get_goal_by_id_usecase.dart';
 import '../../domain/usecases/goal/watch_goals_usecase.dart';
 import '../../domain/usecases/goal/update_goal_status_usecase.dart';
+import '../../data/datasources/goal_remote_datasource.dart';
+import '../../data/datasources/task_remote_datasource.dart';
 
 /// Goal provider status enumeration for UI state management
 enum GoalProviderStatus {
@@ -32,6 +34,8 @@ class GoalProvider extends ChangeNotifier {
   final GetGoalByIdUseCase getGoalByIdUseCase;
   final WatchGoalsUseCase watchGoalsUseCase;
   final UpdateGoalStatusUseCase updateGoalStatusUseCase;
+  final GoalRemoteDataSource goalRemoteDataSource;
+  final TaskRemoteDataSource taskRemoteDataSource;
 
   GoalProvider({
     required this.createGoalUseCase,
@@ -41,6 +45,8 @@ class GoalProvider extends ChangeNotifier {
     required this.getGoalByIdUseCase,
     required this.watchGoalsUseCase,
     required this.updateGoalStatusUseCase,
+    required this.goalRemoteDataSource,
+    required this.taskRemoteDataSource,
   });
 
   // State
@@ -50,11 +56,27 @@ class GoalProvider extends ChangeNotifier {
   String? _errorMessage;
   StreamSubscription<dynamic>? _goalsSubscription;
 
+  // Task statistics for active goals
+  int _totalTasksForActiveGoals = 0;
+  int _completedTasksForActiveGoals = 0;
+
   // Getters
   GoalProviderStatus get status => _status;
   List<GoalEntity> get goals => _goals;
   GoalEntity? get selectedGoal => _selectedGoal;
   String? get errorMessage => _errorMessage;
+
+  /// Get total tasks for active goals
+  int get totalTasksForActiveGoals => _totalTasksForActiveGoals;
+
+  /// Get completed tasks for active goals
+  int get completedTasksForActiveGoals => _completedTasksForActiveGoals;
+
+  /// Get task progress for active goals (0.0 to 1.0)
+  double get activeGoalsTaskProgress {
+    if (_totalTasksForActiveGoals == 0) return 0.0;
+    return _completedTasksForActiveGoals / _totalTasksForActiveGoals;
+  }
 
   /// Get active goals
   List<GoalEntity> get activeGoals =>
@@ -90,6 +112,32 @@ class GoalProvider extends ChangeNotifier {
     return (totalCurrentAmount / totalTargetAmount * 100).clamp(0.0, 100.0);
   }
 
+  /// Update task statistics for active goals
+  Future<void> _updateTaskStatistics(String userId) async {
+    try {
+      final activeGoalIds = activeGoals.map((g) => g.id).toList();
+
+      if (activeGoalIds.isEmpty) {
+        _totalTasksForActiveGoals = 0;
+        _completedTasksForActiveGoals = 0;
+        return;
+      }
+
+      final tasks = await taskRemoteDataSource.getTasksByGoalIds(
+        activeGoalIds,
+        userId,
+      );
+
+      _totalTasksForActiveGoals = tasks.length;
+      _completedTasksForActiveGoals =
+          tasks.where((task) => task.isCompleted).length;
+    } catch (e) {
+      debugPrint('Error updating task statistics: $e');
+      _totalTasksForActiveGoals = 0;
+      _completedTasksForActiveGoals = 0;
+    }
+  }
+
   /// Watch goals in real-time for a user
   void watchGoals(String userId) {
     _status = GoalProviderStatus.loading;
@@ -105,10 +153,14 @@ class GoalProvider extends ChangeNotifier {
             _errorMessage = failure.message;
             notifyListeners();
           },
-          (goals) {
+          (goals) async {
             _goals = goals;
             _status = GoalProviderStatus.loaded;
             _errorMessage = null;
+            notifyListeners();
+
+            // Update task statistics for active goals
+            await _updateTaskStatistics(userId);
             notifyListeners();
           },
         );
@@ -135,10 +187,14 @@ class GoalProvider extends ChangeNotifier {
         _errorMessage = failure.message;
         notifyListeners();
       },
-      (goals) {
+      (goals) async {
         _goals = goals;
         _status = GoalProviderStatus.loaded;
         _errorMessage = null;
+        notifyListeners();
+
+        // Update task statistics for active goals
+        await _updateTaskStatistics(userId);
         notifyListeners();
       },
     );
@@ -279,6 +335,48 @@ class GoalProvider extends ChangeNotifier {
   void clearSelectedGoal() {
     _selectedGoal = null;
     notifyListeners();
+  }
+
+  /// Recalculate goal's current amount based on transactions
+  /// This is called automatically when transactions linked to a goal are modified
+  Future<void> recalculateGoalAmount(String goalId, String userId) async {
+    try {
+      // Calculate current amount from transactions
+      final currentAmount = await goalRemoteDataSource.calculateGoalCurrentAmount(
+        goalId,
+        userId,
+      );
+
+      // Get the current goal to preserve other fields
+      final goalIndex = _goals.indexWhere((g) => g.id == goalId);
+      if (goalIndex == -1) return;
+
+      final currentGoal = _goals[goalIndex];
+
+      // Update the goal with new current amount
+      final updatedGoal = GoalEntity(
+        id: currentGoal.id,
+        userId: currentGoal.userId,
+        title: currentGoal.title,
+        description: currentGoal.description,
+        targetAmount: currentGoal.targetAmount,
+        currentAmount: currentAmount,
+        startDate: currentGoal.startDate,
+        targetDate: currentGoal.targetDate,
+        status: currentGoal.status,
+        associatedTransactionIds: currentGoal.associatedTransactionIds,
+        createdAt: currentGoal.createdAt,
+        updatedAt: DateTime.now(),
+      );
+
+      // Update in Firestore
+      await updateGoalUseCase(updatedGoal);
+
+      // The real-time listener will update the local state automatically
+    } catch (e) {
+      // Silently fail - this is a background operation
+      debugPrint('Error recalculating goal amount: $e');
+    }
   }
 
   /// Clear error message

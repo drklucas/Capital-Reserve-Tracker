@@ -78,6 +78,7 @@ class AppAuthProvider extends ChangeNotifier {
       if (user != null) {
         _user = user;
         _setStatus(AuthStatus.authenticated);
+        notifyListeners(); // Explicitly notify after user update
       } else {
         _user = null;
         _setStatus(AuthStatus.unauthenticated);

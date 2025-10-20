@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 
 /// Transaction type enumeration
 enum TransactionType {
@@ -36,7 +37,6 @@ class TransactionEntity extends Equatable {
   final String description;
   final DateTime date;
   final TransactionCategory category;
-  final String? goalId; // Optional association with a goal
   final String userId;
   final DateTime createdAt;
   final DateTime? updatedAt;
@@ -48,7 +48,6 @@ class TransactionEntity extends Equatable {
     required this.description,
     required this.date,
     required this.category,
-    this.goalId,
     required this.userId,
     required this.createdAt,
     this.updatedAt,
@@ -59,9 +58,6 @@ class TransactionEntity extends Equatable {
 
   /// Check if transaction is expense
   bool get isExpense => type == TransactionType.expense;
-
-  /// Check if transaction is associated with a goal
-  bool get hasGoal => goalId != null && goalId!.isNotEmpty;
 
   /// Get signed amount (positive for income, negative for expense)
   double get signedAmount => isIncome ? amount : -amount;
@@ -74,7 +70,6 @@ class TransactionEntity extends Equatable {
     String? description,
     DateTime? date,
     TransactionCategory? category,
-    String? goalId,
     String? userId,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -86,7 +81,6 @@ class TransactionEntity extends Equatable {
       description: description ?? this.description,
       date: date ?? this.date,
       category: category ?? this.category,
-      goalId: goalId ?? this.goalId,
       userId: userId ?? this.userId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -101,7 +95,6 @@ class TransactionEntity extends Equatable {
         description,
         date,
         category,
-        goalId,
         userId,
         createdAt,
         updatedAt,
@@ -111,7 +104,7 @@ class TransactionEntity extends Equatable {
   String toString() {
     return 'TransactionEntity(id: $id, type: $type, amount: $amount, '
         'description: $description, date: $date, category: $category, '
-        'goalId: $goalId, userId: $userId)';
+        'userId: $userId)';
   }
 }
 
@@ -202,6 +195,44 @@ extension TransactionCategoryExtension on TransactionCategory {
         return 'shopping_cart';
       case TransactionCategory.savings:
         return 'savings';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      // Income
+      case TransactionCategory.salary:
+        return Icons.payments;
+      case TransactionCategory.bonus:
+        return Icons.card_giftcard;
+      case TransactionCategory.investment:
+        return Icons.trending_up;
+      case TransactionCategory.freelance:
+        return Icons.work;
+      case TransactionCategory.gift:
+        return Icons.redeem;
+      case TransactionCategory.other:
+        return Icons.more_horiz;
+
+      // Expense
+      case TransactionCategory.food:
+        return Icons.restaurant;
+      case TransactionCategory.transport:
+        return Icons.directions_car;
+      case TransactionCategory.housing:
+        return Icons.home;
+      case TransactionCategory.utilities:
+        return Icons.bolt;
+      case TransactionCategory.entertainment:
+        return Icons.movie;
+      case TransactionCategory.healthcare:
+        return Icons.local_hospital;
+      case TransactionCategory.education:
+        return Icons.school;
+      case TransactionCategory.shopping:
+        return Icons.shopping_cart;
+      case TransactionCategory.savings:
+        return Icons.savings;
     }
   }
 

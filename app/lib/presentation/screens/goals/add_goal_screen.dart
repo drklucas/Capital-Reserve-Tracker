@@ -23,18 +23,11 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _targetAmountController = TextEditingController();
 
   DateTime _startDate = DateTime.now();
   DateTime _targetDate = DateTime.now().add(const Duration(days: 30));
 
   bool _isLoading = false;
-
-  final _currencyFormatter = NumberFormat.currency(
-    locale: 'pt_BR',
-    symbol: 'R\$',
-    decimalDigits: 2,
-  );
 
   final _dateFormatter = DateFormat('dd/MM/yyyy');
 
@@ -45,9 +38,6 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
     if (widget.goal != null) {
       _titleController.text = widget.goal!.title;
       _descriptionController.text = widget.goal!.description;
-      _targetAmountController.text = _currencyFormatter.format(
-        widget.goal!.targetAmount / 100,
-      ).replaceAll('R\$', '').trim();
       _startDate = widget.goal!.startDate;
       _targetDate = widget.goal!.targetDate;
     }
@@ -57,7 +47,6 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _targetAmountController.dispose();
     super.dispose();
   }
 
@@ -75,21 +64,6 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
     if (value != null && value.length > 500) {
       return 'A descrição deve ter no máximo 500 caracteres';
     }
-    return null;
-  }
-
-  String? _validateTargetAmount(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'O valor alvo é obrigatório';
-    }
-
-    final cleanValue = value.replaceAll(RegExp(r'[^\d,]'), '');
-    final numericValue = double.tryParse(cleanValue.replaceAll(',', '.'));
-
-    if (numericValue == null || numericValue <= 0) {
-      return 'Insira um valor válido maior que zero';
-    }
-
     return null;
   }
 
@@ -147,15 +121,12 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
       final authProvider = context.read<AppAuthProvider>();
       final goalProvider = context.read<GoalProvider>();
 
-      final cleanValue = _targetAmountController.text.replaceAll(RegExp(r'[^\d,]'), '');
-      final targetAmountInCents = (double.parse(cleanValue.replaceAll(',', '.')) * 100).toInt();
-
       final goal = GoalEntity(
         id: widget.goal?.id ?? '', // Firestore will generate ID on create
         userId: authProvider.user!.id,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
-        targetAmount: targetAmountInCents,
+        targetAmount: 0, // Não é mais usado
         currentAmount: widget.goal?.currentAmount ?? 0,
         startDate: _startDate,
         targetDate: _targetDate,
@@ -249,23 +220,6 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
               maxLines: 3,
               textCapitalization: TextCapitalization.sentences,
             ),
-            const SizedBox(height: 16),
-
-            // Target Amount Field
-            TextFormField(
-              controller: _targetAmountController,
-              decoration: const InputDecoration(
-                labelText: 'Valor Alvo *',
-                hintText: '0,00',
-                prefixIcon: Icon(Icons.attach_money),
-                prefixText: 'R\$ ',
-              ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[\d,]')),
-              ],
-              validator: _validateTargetAmount,
-            ),
             const SizedBox(height: 24),
 
             // Date Fields
@@ -298,38 +252,6 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-
-            // Summary Card
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Resumo',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildSummaryRow(
-                      'Período',
-                      '${_targetDate.difference(_startDate).inDays} dias',
-                    ),
-                    const SizedBox(height: 8),
-                    _buildSummaryRow(
-                      'Economia diária necessária',
-                      _targetAmountController.text.isNotEmpty
-                          ? _calculateDailySavings()
-                          : 'R\$ 0,00',
-                    ),
-                  ],
-                ),
-              ),
-            ),
             const SizedBox(height: 32),
 
             // Save Button
@@ -347,38 +269,5 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
         ),
       ),
     );
-  }
-
-  Widget _buildSummaryRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 14,
-          ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _calculateDailySavings() {
-    final cleanValue = _targetAmountController.text.replaceAll(RegExp(r'[^\d,]'), '');
-    final targetAmount = double.tryParse(cleanValue.replaceAll(',', '.')) ?? 0;
-    final days = _targetDate.difference(_startDate).inDays;
-
-    if (days <= 0) return 'R\$ 0,00';
-
-    final dailySavings = targetAmount / days;
-    return _currencyFormatter.format(dailySavings);
   }
 }

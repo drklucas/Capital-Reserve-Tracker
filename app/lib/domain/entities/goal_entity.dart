@@ -123,18 +123,23 @@ class GoalEntity extends Equatable {
   int get daysRemaining {
     final now = DateTime.now();
     if (targetDate.isBefore(now)) return 0;
-    return targetDate.difference(now).inDays;
+    // Inclui o dia atual como restante
+    return targetDate.difference(now).inDays + 1;
   }
 
   /// Calculate days elapsed since start date
   int get daysElapsed {
     final now = DateTime.now();
-    return now.difference(startDate).inDays;
+    final elapsed = now.difference(startDate).inDays;
+    // Se a meta começou hoje ou antes, conta como pelo menos 1 dia
+    return elapsed + 1;
   }
 
   /// Calculate total days from start to target
   int get totalDays {
-    return targetDate.difference(startDate).inDays;
+    final days = targetDate.difference(startDate).inDays;
+    // Total de dias incluindo o primeiro e o último
+    return days + 1;
   }
 
   /// Check if goal is overdue (past target date and not completed)

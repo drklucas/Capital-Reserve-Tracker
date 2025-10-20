@@ -21,7 +21,6 @@ class UpdateTransactionUseCase {
     String? description,
     DateTime? date,
     TransactionCategory? category,
-    String? goalId,
   }) async {
     // Validate amount if provided
     if (amount != null && amount <= 0) {
@@ -44,7 +43,6 @@ class UpdateTransactionUseCase {
       description: description?.trim(),
       date: date,
       category: category,
-      goalId: goalId,
       updatedAt: DateTime.now(),
     );
 

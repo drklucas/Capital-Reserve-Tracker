@@ -21,7 +21,6 @@ class CreateTransactionUseCase {
     required String description,
     required DateTime date,
     required TransactionCategory category,
-    String? goalId,
   }) async {
     // Validate amount
     if (amount <= 0) {
@@ -45,7 +44,6 @@ class CreateTransactionUseCase {
       description: description.trim(),
       date: date,
       category: category,
-      goalId: goalId,
       userId: userId,
       createdAt: DateTime.now(),
     );

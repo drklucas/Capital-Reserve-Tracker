@@ -51,14 +51,7 @@ class UpdateGoalUseCase {
       return 'A descrição deve ter no máximo 500 caracteres';
     }
 
-    if (goal.targetAmount <= 0) {
-      return 'O valor alvo deve ser maior que zero';
-    }
-
-    if (goal.targetAmount > 1000000000) {
-      // 10 million in currency
-      return 'O valor alvo é muito alto';
-    }
+    // Removido: validação de targetAmount (não é mais usado)
 
     if (goal.targetDate.isBefore(goal.startDate)) {
       return 'A data alvo não pode ser anterior à data de início';

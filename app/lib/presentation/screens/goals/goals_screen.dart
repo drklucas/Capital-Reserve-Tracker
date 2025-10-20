@@ -223,7 +223,6 @@ class _GoalsScreenState extends State<GoalsScreen> {
   }
 
   Widget _buildGoalCard(BuildContext context, GoalEntity goal) {
-    final progress = goal.progressPercentage;
     final isOverdue = goal.isOverdue;
 
     return Card(
@@ -265,53 +264,10 @@ class _GoalsScreenState extends State<GoalsScreen> {
               ],
               const SizedBox(height: 16),
 
-              // Progress bar
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        currencyFormat.format(goal.currentAmount / 100),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Text(
-                        '${progress.toStringAsFixed(1)}%',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: progress >= 100 ? Colors.green : Colors.blue,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: progress / 100,
-                      minHeight: 8,
-                      backgroundColor: Colors.grey[200],
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        progress >= 100 ? Colors.green : Colors.blue,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Meta: ${currencyFormat.format(goal.targetAmount / 100)}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
+              // Progress bar (based on tasks) - removed to simplify
+              // Will show task count in date section instead
+
+              const SizedBox(height: 4),
 
               // Date and days info
               Row(

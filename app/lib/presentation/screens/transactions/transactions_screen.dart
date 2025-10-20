@@ -255,7 +255,11 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
     if (confirmed == true && mounted) {
       final provider = context.read<TransactionProvider>();
-      final success = await provider.deleteTransaction(transactionId);
+      final authProvider = context.read<AppAuthProvider>();
+      final success = await provider.deleteTransaction(
+        transactionId,
+        authProvider.user!.id,
+      );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -440,8 +444,6 @@ class _TransactionDetailsSheet extends StatelessWidget {
           _DetailRow('Valor', 'R\$ ${transaction.amount.toStringAsFixed(2)}'),
           _DetailRow('Categoria', transaction.category.displayName),
           _DetailRow('Data', _formatDate(transaction.date)),
-          if (transaction.hasGoal)
-            _DetailRow('Meta Associada', transaction.goalId ?? '-'),
           const SizedBox(height: 24),
           Row(
             children: [

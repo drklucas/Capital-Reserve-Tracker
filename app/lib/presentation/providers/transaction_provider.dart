@@ -74,7 +74,6 @@ class TransactionProvider extends ChangeNotifier {
     required String description,
     required DateTime date,
     required TransactionCategory category,
-    String? goalId,
   }) async {
     _status = TransactionStatus.creating;
     _errorMessage = null;
@@ -87,7 +86,6 @@ class TransactionProvider extends ChangeNotifier {
       description: description,
       date: date,
       category: category,
-      goalId: goalId,
     );
 
     return result.fold(
@@ -97,7 +95,7 @@ class TransactionProvider extends ChangeNotifier {
         notifyListeners();
         return false;
       },
-      (transaction) {
+      (transaction) async {
         _status = TransactionStatus.loaded;
         // Transaction will be added via stream if watching
         notifyListeners();
@@ -114,7 +112,6 @@ class TransactionProvider extends ChangeNotifier {
     String? description,
     DateTime? date,
     TransactionCategory? category,
-    String? goalId,
   }) async {
     _status = TransactionStatus.updating;
     _errorMessage = null;
@@ -127,7 +124,6 @@ class TransactionProvider extends ChangeNotifier {
       description: description,
       date: date,
       category: category,
-      goalId: goalId,
     );
 
     return result.fold(
@@ -137,7 +133,7 @@ class TransactionProvider extends ChangeNotifier {
         notifyListeners();
         return false;
       },
-      (updatedTransaction) {
+      (updatedTransaction) async {
         _status = TransactionStatus.loaded;
         // Update local list
         final index = _transactions.indexWhere((t) => t.id == updatedTransaction.id);
@@ -151,7 +147,7 @@ class TransactionProvider extends ChangeNotifier {
   }
 
   /// Delete a transaction
-  Future<bool> deleteTransaction(String transactionId) async {
+  Future<bool> deleteTransaction(String transactionId, String userId) async {
     _status = TransactionStatus.deleting;
     _errorMessage = null;
     notifyListeners();
@@ -167,7 +163,7 @@ class TransactionProvider extends ChangeNotifier {
         notifyListeners();
         return false;
       },
-      (_) {
+      (_) async {
         _status = TransactionStatus.loaded;
         // Remove from local list
         _transactions.removeWhere((t) => t.id == transactionId);
@@ -283,11 +279,6 @@ class TransactionProvider extends ChangeNotifier {
     TransactionCategory category,
   ) {
     return _transactions.where((t) => t.category == category).toList();
-  }
-
-  /// Get transactions by goal
-  List<TransactionEntity> getTransactionsByGoal(String goalId) {
-    return _transactions.where((t) => t.goalId == goalId).toList();
   }
 
   /// Clear error message
