@@ -113,6 +113,10 @@ class TransactionProvider extends ChangeNotifier {
     DateTime? date,
     TransactionCategory? category,
   }) async {
+    debugPrint('TransactionProvider: Updating transaction - id=${transaction.id}');
+    debugPrint('  Type: $type, Amount: $amount, Description: $description');
+    debugPrint('  Date: $date, Category: $category');
+
     _status = TransactionStatus.updating;
     _errorMessage = null;
     notifyListeners();
@@ -128,17 +132,22 @@ class TransactionProvider extends ChangeNotifier {
 
     return result.fold(
       (failure) {
+        debugPrint('TransactionProvider: Error updating transaction - ${failure.message}');
         _status = TransactionStatus.error;
         _errorMessage = failure.message;
         notifyListeners();
         return false;
       },
       (updatedTransaction) async {
+        debugPrint('TransactionProvider: Transaction updated successfully');
         _status = TransactionStatus.loaded;
         // Update local list
         final index = _transactions.indexWhere((t) => t.id == updatedTransaction.id);
         if (index != -1) {
           _transactions[index] = updatedTransaction;
+          debugPrint('TransactionProvider: Local list updated at index $index');
+        } else {
+          debugPrint('TransactionProvider: WARNING - Transaction not found in local list');
         }
         notifyListeners();
         return true;

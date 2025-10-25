@@ -149,7 +149,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   // Save button
                   Consumer<TransactionProvider>(
                     builder: (context, provider, _) {
-                      if (provider.status == TransactionStatus.creating) {
+                      if (provider.status == TransactionStatus.creating ||
+                          provider.status == TransactionStatus.updating) {
                         return const Center(child: LoadingIndicator());
                       }
 
