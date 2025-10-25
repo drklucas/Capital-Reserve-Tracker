@@ -10,6 +10,42 @@ import '../../providers/task_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../goals/goal_detail_screen.dart';
 
+/// Period filter for reserve evolution chart
+enum ReservePeriod {
+  today,
+  lastWeek,
+  lastMonth,
+  lastMonths,
+}
+
+extension ReservePeriodExtension on ReservePeriod {
+  String get displayName {
+    switch (this) {
+      case ReservePeriod.today:
+        return 'Hoje';
+      case ReservePeriod.lastWeek:
+        return 'Última Semana';
+      case ReservePeriod.lastMonth:
+        return 'Último Mês';
+      case ReservePeriod.lastMonths:
+        return 'Últimos Meses';
+    }
+  }
+
+  int get monthsCount {
+    switch (this) {
+      case ReservePeriod.today:
+        return 0;
+      case ReservePeriod.lastWeek:
+        return 0;
+      case ReservePeriod.lastMonth:
+        return 1;
+      case ReservePeriod.lastMonths:
+        return 6;
+    }
+  }
+}
+
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
 
@@ -25,6 +61,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   );
 
   bool _tasksWatchInitialized = false;
+  ReservePeriod _selectedPeriod = ReservePeriod.lastMonths;
 
   @override
   void initState() {
@@ -165,7 +202,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(height: 32),
 
                       // Reserve Evolution Chart
-                      _buildSectionTitle('Evolução da Reserva'),
+                      _buildSectionTitleWithFilter(
+                        'Evolução da Reserva',
+                        _selectedPeriod,
+                        (ReservePeriod? newPeriod) {
+                          if (newPeriod != null) {
+                            setState(() {
+                              _selectedPeriod = newPeriod;
+                            });
+                          }
+                        },
+                      ),
                       const SizedBox(height: 16),
                       _buildReserveEvolutionChart(dashboardProvider),
                       const SizedBox(height: 32),
@@ -208,6 +255,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitleWithFilter(
+    String title,
+    ReservePeriod selectedPeriod,
+    ValueChanged<ReservePeriod?> onChanged,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, right: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+              ),
+            ),
+            child: DropdownButton<ReservePeriod>(
+              value: selectedPeriod,
+              onChanged: onChanged,
+              underline: const SizedBox(),
+              dropdownColor: const Color(0xFF2d3561),
+              icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+              items: ReservePeriod.values.map((ReservePeriod period) {
+                return DropdownMenuItem<ReservePeriod>(
+                  value: period,
+                  child: Text(period.displayName),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -309,7 +407,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildReserveEvolutionChart(DashboardProvider provider) {
-    final data = provider.getReserveEvolution(6);
+    // Get data based on selected period
+    final List<MonthlyDataPoint> data;
+
+    switch (_selectedPeriod) {
+      case ReservePeriod.today:
+        // For today, show just today's data
+        data = provider.getReserveEvolution(0);
+        break;
+      case ReservePeriod.lastWeek:
+        // For last week, show weekly data (convert to appropriate format)
+        data = provider.getReserveEvolution(0);
+        break;
+      case ReservePeriod.lastMonth:
+        // For last month, show just one month
+        data = provider.getReserveEvolution(1);
+        break;
+      case ReservePeriod.lastMonths:
+        // For last months, show 6 months (default)
+        data = provider.getReserveEvolution(6);
+        break;
+    }
 
     if (data.isEmpty) {
       return _buildEmptyChart('Nenhum dado disponível');
