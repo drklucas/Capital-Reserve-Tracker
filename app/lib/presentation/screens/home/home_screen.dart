@@ -9,6 +9,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/goal_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/task_provider.dart';
+import '../goals/goal_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -1440,10 +1441,11 @@ class _GoalCard extends StatelessWidget {
             opacity: value,
             child: InkWell(
               onTap: () {
-                Navigator.pushNamed(
+                Navigator.push(
                   context,
-                  '/goal-detail',
-                  arguments: goal.id,
+                  MaterialPageRoute(
+                    builder: (context) => GoalDetailScreen(goalId: goal.id),
+                  ),
                 );
               },
               borderRadius: BorderRadius.circular(16),

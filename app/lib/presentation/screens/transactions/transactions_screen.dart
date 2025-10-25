@@ -179,7 +179,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         ),
       ),
       floatingActionButton: Container(
-        height: 56,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
@@ -189,12 +188,12 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               Color(0xFF059669),
             ],
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
               color: const Color(0xFF10B981).withOpacity(0.4),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
@@ -416,8 +415,31 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => _TransactionDetailsSheet(transaction: transaction),
+      builder: (context) => _TransactionDetailsSheet(
+        transaction: transaction,
+        onEdit: () => _editTransaction(transaction),
+        onDelete: () => _deleteTransaction(transaction.id),
+      ),
     );
+  }
+
+  Future<void> _editTransaction(TransactionEntity transaction) async {
+    Navigator.pop(context); // Close the modal first
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddTransactionScreen(transaction: transaction),
+      ),
+    );
+
+    if (result == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Transação atualizada com sucesso'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
   }
 
   Future<void> _deleteTransaction(String transactionId) async {
@@ -638,8 +660,14 @@ class _TransactionListItem extends StatelessWidget {
 
 class _TransactionDetailsSheet extends StatelessWidget {
   final TransactionEntity transaction;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
-  const _TransactionDetailsSheet({required this.transaction});
+  const _TransactionDetailsSheet({
+    required this.transaction,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -726,27 +754,49 @@ class _TransactionDetailsSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () {
-                Navigator.pop(context);
-                // TODO: Navigate to edit screen
-              },
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF5A67D8),
-                side: const BorderSide(color: Color(0xFF5A67D8)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: onEdit,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF5A67D8),
+                    side: const BorderSide(color: Color(0xFF5A67D8)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: const Icon(Icons.edit),
+                  label: const Text(
+                    'Editar',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
-              icon: const Icon(Icons.edit),
-              label: const Text(
-                'Editar',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    onDelete();
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.red,
+                    side: const BorderSide(color: Colors.red),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: const Icon(Icons.delete),
+                  label: const Text(
+                    'Excluir',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ],
       ),

@@ -8,6 +8,7 @@ import '../../providers/goal_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../goals/goal_detail_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -562,25 +563,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Column(
       children: goalsProgress.take(5).map((goal) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF2d3561), Color(0xFF1f2544)],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 15,
-                offset: const Offset(0, 5),
+        return InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => GoalDetailScreen(goalId: goal.goalId),
               ),
-            ],
-          ),
-          child: Column(
+            );
+          },
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF2d3561), Color(0xFF1f2544)],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
@@ -642,6 +653,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
             ],
+            ),
           ),
         );
       }).toList(),

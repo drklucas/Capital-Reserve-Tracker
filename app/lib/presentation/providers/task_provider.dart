@@ -247,6 +247,10 @@ class TaskProvider extends ChangeNotifier {
       return;
     }
 
+    // Cancel all previous subscriptions and clear tasks when switching to a new goal
+    _cancelAllSubscriptions();
+    _tasks.clear();
+
     _status = TaskStatus.loading;
     _errorMessage = null;
 
@@ -272,11 +276,8 @@ class TaskProvider extends ChangeNotifier {
             if (!_isReordering) {
               _status = TaskStatus.loaded;
 
-              // Remove old tasks for this goal
-              _tasks.removeWhere((t) => t.goalId == goalId);
-
-              // Add new tasks for this goal
-              _tasks.addAll(tasksForGoal);
+              // Replace all tasks with the new ones from this goal
+              _tasks = tasksForGoal;
 
               debugPrint('TaskProvider: Total tasks now: ${_tasks.length}');
               notifyListeners();
@@ -377,6 +378,15 @@ class TaskProvider extends ChangeNotifier {
     }
   }
 
+  /// Cancel all task subscriptions
+  void _cancelAllSubscriptions() {
+    debugPrint('TaskProvider: Cancelling all subscriptions');
+    for (var subscription in _taskSubscriptionsByGoal.values) {
+      subscription.cancel();
+    }
+    _taskSubscriptionsByGoal.clear();
+  }
+
   /// Clear error message
   void clearError() {
     _errorMessage = null;
@@ -389,11 +399,7 @@ class TaskProvider extends ChangeNotifier {
   @override
   void dispose() {
     _tasksSubscription?.cancel();
-    // Cancel all goal-specific subscriptions
-    for (var subscription in _taskSubscriptionsByGoal.values) {
-      subscription.cancel();
-    }
-    _taskSubscriptionsByGoal.clear();
+    _cancelAllSubscriptions();
     super.dispose();
   }
 }

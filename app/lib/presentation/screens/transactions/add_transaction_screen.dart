@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../../../core/constants/app_constants.dart';
 import '../../../domain/entities/transaction_entity.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/transaction_provider.dart';
-import '../../widgets/custom_button.dart';
 import '../../widgets/loading_indicator.dart';
 
-/// Screen for adding a new transaction
+/// Screen for adding or editing a transaction
 class AddTransactionScreen extends StatefulWidget {
-  const AddTransactionScreen({Key? key}) : super(key: key);
+  final TransactionEntity? transaction;
+
+  const AddTransactionScreen({Key? key, this.transaction}) : super(key: key);
 
   @override
   State<AddTransactionScreen> createState() => _AddTransactionScreenState();
@@ -26,6 +26,19 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   DateTime _selectedDate = DateTime.now();
 
   @override
+  void initState() {
+    super.initState();
+    // If editing, populate fields with existing transaction data
+    if (widget.transaction != null) {
+      _descriptionController.text = widget.transaction!.description;
+      _amountController.text = widget.transaction!.amount.toString();
+      _type = widget.transaction!.type;
+      _category = widget.transaction!.category;
+      _selectedDate = widget.transaction!.date;
+    }
+  }
+
+  @override
   void dispose() {
     _descriptionController.dispose();
     _amountController.dispose();
@@ -39,9 +52,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
-          'Nova Transação',
-          style: TextStyle(
+        title: Text(
+          widget.transaction == null ? 'Nova Transação' : 'Editar Transação',
+          style: const TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 24,
             color: Colors.white,
@@ -486,12 +499,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.save_rounded, size: 24, color: Colors.white),
-            SizedBox(width: 8),
+          children: [
+            const Icon(Icons.save_rounded, size: 24, color: Colors.white),
+            const SizedBox(width: 8),
             Text(
-              'Salvar Transação',
-              style: TextStyle(
+              widget.transaction == null ? 'Salvar Transação' : 'Atualizar Transação',
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -575,15 +588,29 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     }
 
     final amount = double.parse(_amountController.text.replaceAll(',', '.'));
+    bool success;
 
-    final success = await transactionProvider.createTransaction(
-      userId: authProvider.user!.id,
-      type: _type,
-      amount: amount,
-      description: _descriptionController.text.trim(),
-      date: _selectedDate,
-      category: _category,
-    );
+    if (widget.transaction == null) {
+      // Creating new transaction
+      success = await transactionProvider.createTransaction(
+        userId: authProvider.user!.id,
+        type: _type,
+        amount: amount,
+        description: _descriptionController.text.trim(),
+        date: _selectedDate,
+        category: _category,
+      );
+    } else {
+      // Updating existing transaction
+      success = await transactionProvider.updateTransaction(
+        transaction: widget.transaction!,
+        type: _type,
+        amount: amount,
+        description: _descriptionController.text.trim(),
+        date: _selectedDate,
+        category: _category,
+      );
+    }
 
     if (mounted) {
       if (success) {
@@ -592,7 +619,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              transactionProvider.errorMessage ?? 'Erro ao criar transação',
+              transactionProvider.errorMessage ??
+                (widget.transaction == null ? 'Erro ao criar transação' : 'Erro ao atualizar transação'),
             ),
             backgroundColor: Colors.red,
           ),
