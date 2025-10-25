@@ -15,6 +15,7 @@ class DeleteTransactionUseCase {
   /// Returns Left(Failure) on error
   Future<Either<Failure, void>> call({
     required String transactionId,
+    required String userId,
   }) async {
     if (transactionId.trim().isEmpty) {
       return Left(
@@ -22,6 +23,12 @@ class DeleteTransactionUseCase {
       );
     }
 
-    return await repository.deleteTransaction(transactionId);
+    if (userId.trim().isEmpty) {
+      return Left(
+        ValidationFailure(message: 'ID do usuário é obrigatório'),
+      );
+    }
+
+    return await repository.deleteTransaction(transactionId, userId);
   }
 }

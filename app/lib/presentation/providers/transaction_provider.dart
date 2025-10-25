@@ -157,22 +157,26 @@ class TransactionProvider extends ChangeNotifier {
 
   /// Delete a transaction
   Future<bool> deleteTransaction(String transactionId, String userId) async {
+    debugPrint('TransactionProvider: Deleting transaction - id=$transactionId, userId=$userId');
     _status = TransactionStatus.deleting;
     _errorMessage = null;
     notifyListeners();
 
     final result = await deleteTransactionUseCase(
       transactionId: transactionId,
+      userId: userId,
     );
 
     return result.fold(
       (failure) {
+        debugPrint('TransactionProvider: Error deleting transaction - ${failure.message}');
         _status = TransactionStatus.error;
         _errorMessage = failure.message;
         notifyListeners();
         return false;
       },
       (_) async {
+        debugPrint('TransactionProvider: Transaction deleted successfully');
         _status = TransactionStatus.loaded;
         // Remove from local list
         _transactions.removeWhere((t) => t.id == transactionId);

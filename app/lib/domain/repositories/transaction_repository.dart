@@ -21,7 +21,10 @@ abstract class TransactionRepository {
   /// Delete a transaction by ID
   /// Returns Right(void) on success
   /// Returns Left(Failure) on error
-  Future<Either<Failure, void>> deleteTransaction(String transactionId);
+  Future<Either<Failure, void>> deleteTransaction(
+    String transactionId,
+    String userId,
+  );
 
   /// Get a single transaction by ID
   /// Returns Right(TransactionEntity) on success

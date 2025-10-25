@@ -47,26 +47,9 @@ class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @override
-  Future<Either<Failure, void>> deleteTransaction(String transactionId) async {
-    try {
-      // Note: userId should be passed from the use case layer
-      // For now, we'll need to modify this when we implement the use case
-      throw UnimplementedError(
-        'deleteTransaction requires userId - use deleteTransactionUseCase',
-      );
-    } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message));
-    } catch (e) {
-      return Left(
-        ServerFailure(message: 'Erro inesperado ao deletar transação'),
-      );
-    }
-  }
-
-  /// Delete transaction with userId (internal method)
-  Future<Either<Failure, void>> _deleteTransactionWithUserId(
-    String userId,
+  Future<Either<Failure, void>> deleteTransaction(
     String transactionId,
+    String userId,
   ) async {
     try {
       await remoteDataSource.deleteTransaction(userId, transactionId);
