@@ -4,12 +4,12 @@ import 'package:intl/intl.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../../core/services/mock_data_service.dart';
-import '../../../domain/entities/goal_entity.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/goal_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/task_provider.dart';
-import '../goals/goal_detail_screen.dart';
+import '../../providers/home_screen_provider.dart';
+import '../../widgets/goal_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -67,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final authProvider = context.read<AppAuthProvider>();
     if (authProvider.user != null) {
       debugPrint('HomeScreen: Loading data for user ${authProvider.user!.id}');
-      context.read<GoalProvider>().watchGoals(authProvider.user!.id);
+      context.read<HomeScreenProvider>().watchGoals(authProvider.user!.id);
       context.read<TransactionProvider>().watchTransactions(userId: authProvider.user!.id);
     } else {
       debugPrint('HomeScreen: User is null, waiting for auth...');
@@ -470,9 +470,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildGoalsCard(BuildContext context) {
-    return Consumer<GoalProvider>(
-      builder: (context, goalProvider, _) {
-        final activeGoals = goalProvider.activeGoals;
+    return Consumer<HomeScreenProvider>(
+      builder: (context, homeProvider, _) {
+        final activeGoals = homeProvider.activeGoals;
         final hasGoals = activeGoals.isNotEmpty;
 
         return TweenAnimationBuilder<double>(
@@ -552,8 +552,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                 ),
                               ),
                               Text(
-                                goalProvider.totalTasksForActiveGoals > 0
-                                    ? '${goalProvider.completedTasksForActiveGoals}/${goalProvider.totalTasksForActiveGoals} tarefas'
+                                homeProvider.totalTasksForActiveGoals > 0
+                                    ? '${homeProvider.completedTasksForActiveGoals}/${homeProvider.totalTasksForActiveGoals} tarefas'
                                     : 'Sem tarefas',
                                 style: TextStyle(
                                   color: Colors.white.withOpacity(0.9),
@@ -567,7 +567,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(10),
                             child: TweenAnimationBuilder<double>(
-                              tween: Tween(begin: 0.0, end: goalProvider.activeGoalsTaskProgress),
+                              tween: Tween(begin: 0.0, end: homeProvider.activeGoalsTaskProgress),
                               duration: const Duration(milliseconds: 1500),
                               curve: Curves.easeOutCubic,
                               builder: (context, animValue, child) {
@@ -845,9 +845,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildActiveGoalsSection(BuildContext context) {
-    return Consumer<GoalProvider>(
-      builder: (context, goalProvider, _) {
-        final activeGoals = goalProvider.activeGoals;
+    return Consumer<HomeScreenProvider>(
+      builder: (context, homeScreenProvider, _) {
+        final activeGoals = homeScreenProvider.activeGoals;
 
         if (activeGoals.isEmpty) {
           return const SizedBox.shrink();
@@ -887,7 +887,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               separatorBuilder: (context, index) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
                 final goal = activeGoals[index];
-                return _GoalCard(goal: goal, index: index);
+                final tasks = homeScreenProvider.getTasksForGoal(goal.id);
+                return GoalCard(goal: goal, index: index, tasks: tasks);
               },
             ),
           ],
@@ -1396,184 +1397,3 @@ class _PeriodTab extends StatelessWidget {
   }
 }
 
-class _GoalCard extends StatelessWidget {
-  final GoalEntity goal;
-  final int index;
-
-  const _GoalCard({
-    required this.goal,
-    required this.index,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final currencyFormat = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
-
-    // Gradient colors for different goal cards
-    final gradients = [
-      const LinearGradient(
-        colors: [Color(0xFFEC4899), Color(0xFF8B5CF6)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-      const LinearGradient(
-        colors: [Color(0xFF8B5CF6), Color(0xFF3B82F6)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-      const LinearGradient(
-        colors: [Color(0xFFF59E0B), Color(0xFFEF4444)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-    ];
-
-    final gradient = gradients[index % gradients.length];
-
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: Duration(milliseconds: 600 + (index * 100)),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) {
-        return Transform.translate(
-          offset: Offset(0, 20 * (1 - value)),
-          child: Opacity(
-            opacity: value,
-            child: InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => GoalDetailScreen(goalId: goal.id),
-                  ),
-                );
-              },
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: gradient,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: gradient.colors.first.withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Goal title and days remaining
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              goal.title,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.calendar_today,
-                                  color: Colors.white.withOpacity(0.9),
-                                  size: 14,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${goal.daysRemaining} dias',
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.9),
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (goal.description.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          goal.description,
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
-                            fontSize: 13,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                      const SizedBox(height: 16),
-
-                      // Progress bar (based on days)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Progresso',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.8),
-                                  fontSize: 12,
-                                ),
-                              ),
-                              Text(
-                                '${((goal.daysElapsed / goal.totalDays) * 100).toStringAsFixed(0)}%',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: LinearProgressIndicator(
-                              value: goal.daysElapsed / goal.totalDays,
-                              minHeight: 6,
-                              backgroundColor: Colors.white.withOpacity(0.3),
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}

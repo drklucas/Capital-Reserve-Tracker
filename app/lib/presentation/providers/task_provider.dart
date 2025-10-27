@@ -241,13 +241,8 @@ class TaskProvider extends ChangeNotifier {
   }) {
     debugPrint('TaskProvider: Starting to watch tasks for goalId=$goalId, userId=$userId');
 
-    // Check if already watching this goal
-    if (_taskSubscriptionsByGoal.containsKey(goalId)) {
-      debugPrint('TaskProvider: Already watching goal $goalId, skipping');
-      return;
-    }
-
-    // Cancel all previous subscriptions and clear tasks when switching to a new goal
+    // Always cancel all previous subscriptions and clear tasks when switching to a new goal
+    // This prevents task mixing between different goals
     _cancelAllSubscriptions();
     _tasks.clear();
 

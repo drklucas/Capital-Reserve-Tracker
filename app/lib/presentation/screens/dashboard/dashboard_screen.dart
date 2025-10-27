@@ -2,11 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../../domain/entities/task_entity.dart';
 import '../../providers/dashboard_provider.dart';
-import '../../providers/goal_provider.dart';
 import '../../providers/transaction_provider.dart';
-import '../../providers/task_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../goals/goal_detail_screen.dart';
 
@@ -46,6 +43,29 @@ extension ReservePeriodExtension on ReservePeriod {
   }
 }
 
+/// Period filter for income/expenses chart
+enum IncomeExpensesPeriod {
+  lastWeek,
+  lastMonth,
+  lastMonths,
+  lastYear,
+}
+
+extension IncomeExpensesPeriodExtension on IncomeExpensesPeriod {
+  String get displayName {
+    switch (this) {
+      case IncomeExpensesPeriod.lastWeek:
+        return 'Semana';
+      case IncomeExpensesPeriod.lastMonth:
+        return 'Mês';
+      case IncomeExpensesPeriod.lastMonths:
+        return '6 Meses';
+      case IncomeExpensesPeriod.lastYear:
+        return 'Ano';
+    }
+  }
+}
+
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
 
@@ -60,55 +80,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     decimalDigits: 2,
   );
 
-  bool _tasksWatchInitialized = false;
   ReservePeriod _selectedPeriod = ReservePeriod.lastMonths;
+  IncomeExpensesPeriod _selectedIncomeExpensesPeriod = IncomeExpensesPeriod.lastMonths;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadDashboardData();
-
-      // Listen to changes in GoalProvider and TaskProvider
-      context.read<GoalProvider>().addListener(_onGoalsChanged);
-      context.read<TaskProvider>().addListener(_updateDashboardProviders);
     });
-  }
-
-  @override
-  void dispose() {
-    // Remove listeners
-    context.read<GoalProvider>().removeListener(_onGoalsChanged);
-    context.read<TaskProvider>().removeListener(_updateDashboardProviders);
-    super.dispose();
-  }
-
-  void _onGoalsChanged() {
-    if (!mounted) return;
-
-    final authProvider = context.read<AppAuthProvider>();
-    final goalProvider = context.read<GoalProvider>();
-    final taskProvider = context.read<TaskProvider>();
-
-    debugPrint('Dashboard: _onGoalsChanged called, goals count: ${goalProvider.goals.length}');
-
-    // Watch tasks for all goals when goals are loaded
-    if (!_tasksWatchInitialized && goalProvider.goals.isNotEmpty && authProvider.user != null) {
-      _tasksWatchInitialized = true;
-      final userId = authProvider.user!.id;
-
-      debugPrint('Dashboard: Initializing task watch for ${goalProvider.goals.length} goals');
-
-      for (var goal in goalProvider.goals) {
-        debugPrint('Dashboard: Watching tasks for goal "${goal.title}" (${goal.id})');
-        taskProvider.watchTasksByGoal(
-          userId: userId,
-          goalId: goal.id,
-        );
-      }
-    }
-
-    _updateDashboardProviders();
   }
 
   void _loadDashboardData() {
@@ -116,44 +96,95 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (authProvider.user != null) {
       final userId = authProvider.user!.id;
 
-      // Watch goals (real-time updates) - this will trigger _onGoalsChanged
-      context.read<GoalProvider>().watchGoals(userId);
+      // DashboardProvider now manages its own goals and tasks
+      context.read<DashboardProvider>().watchGoals(userId);
 
-      // Watch transactions (real-time updates)
+      // TransactionProvider still manages transactions
       context.read<TransactionProvider>().watchTransactions(userId: userId);
-
-      // Update dashboard with current data
-      _updateDashboardProviders();
     }
   }
 
-  void _updateDashboardProviders() {
-    if (!mounted) return;
 
-    final goalProvider = context.read<GoalProvider>();
-    final transactionProvider = context.read<TransactionProvider>();
-    final taskProvider = context.read<TaskProvider>();
-    final dashboardProvider = context.read<DashboardProvider>();
-
-    dashboardProvider.updateGoals(goalProvider.goals);
-    dashboardProvider.updateTransactions(transactionProvider.transactions);
-
-    // Build tasks map by goal
-    final tasksByGoal = <String, List<TaskEntity>>{};
-    for (var goal in goalProvider.goals) {
-      final tasksForGoal = taskProvider.tasks
-          .where((task) => task.goalId == goal.id)
-          .toList();
-      tasksByGoal[goal.id] = tasksForGoal;
-
-      // Debug log
-      debugPrint('Dashboard: Goal "${goal.title}" (${goal.id}) has ${tasksForGoal.length} tasks');
+  /// Get date format based on selected period
+  String _getDateFormat() {
+    switch (_selectedPeriod) {
+      case ReservePeriod.today:
+        return 'HH:mm'; // Show hours and minutes for today
+      case ReservePeriod.lastWeek:
+        return 'dd/MM'; // Show day/month for last week
+      case ReservePeriod.lastMonth:
+        return 'dd/MM'; // Show day/month for last month
+      case ReservePeriod.lastMonths:
+        return 'MMM'; // Show month abbreviation for last months
     }
+  }
 
-    debugPrint('Dashboard: Total tasks in TaskProvider: ${taskProvider.tasks.length}');
-    debugPrint('Dashboard: Total goals: ${goalProvider.goals.length}');
+  /// Get interval for bottom titles based on data length and period
+  double _getBottomTitlesInterval(int dataLength) {
+    if (dataLength <= 1) return 1;
 
-    dashboardProvider.updateTasksByGoal(tasksByGoal);
+    switch (_selectedPeriod) {
+      case ReservePeriod.today:
+        // Show every data point if there are few transactions, otherwise show every other one
+        return dataLength <= 6 ? 1 : 2;
+      case ReservePeriod.lastWeek:
+        return 1; // Show all 7 days
+      case ReservePeriod.lastMonth:
+        // Show every 5th day for 30 days
+        return 5;
+      case ReservePeriod.lastMonths:
+        return 1; // Show all 6 months
+    }
+  }
+
+  /// Get date format for income/expenses chart
+  String _getIncomeExpensesDateFormat() {
+    switch (_selectedIncomeExpensesPeriod) {
+      case IncomeExpensesPeriod.lastWeek:
+        return 'EEE'; // Show day of week abbreviation (Seg, Ter, etc.)
+      case IncomeExpensesPeriod.lastMonth:
+        return 'dd/MM'; // Show day/month
+      case IncomeExpensesPeriod.lastMonths:
+        return 'MMM'; // Show month abbreviation
+      case IncomeExpensesPeriod.lastYear:
+        return 'MMM'; // Show month abbreviation
+    }
+  }
+
+  /// Get interval for income/expenses chart bottom titles
+  double _getIncomeExpensesInterval(int dataLength) {
+    if (dataLength <= 1) return 1;
+
+    switch (_selectedIncomeExpensesPeriod) {
+      case IncomeExpensesPeriod.lastWeek:
+        return 1; // Show all 7 days
+      case IncomeExpensesPeriod.lastMonth:
+        return 1; // Check every index, but filter in getTitlesWidget to show only days divisible by 5
+      case IncomeExpensesPeriod.lastMonths:
+        return 1; // Show all 6 months
+      case IncomeExpensesPeriod.lastYear:
+        return 1; // Show all 12 months
+    }
+  }
+
+  /// Get dynamic bar width based on data length
+  double _getDynamicBarWidth(int dataLength) {
+    if (dataLength <= 3) return 24; // Wide bars for very few data points
+    if (dataLength <= 7) return 18; // Medium-wide bars for weekly view
+    if (dataLength <= 12) return 14; // Smaller bars for monthly/6-months view
+    return 12; // Standard bar width for year view
+  }
+
+  /// Get chart alignment based on data length
+  BarChartAlignment _getChartAlignment(int dataLength) {
+    if (dataLength <= 5) return BarChartAlignment.center; // Center when few bars
+    return BarChartAlignment.spaceAround; // Space around for more bars
+  }
+
+  /// Get bar spacing based on data length
+  double _getBarSpacing(int dataLength) {
+    // Barras sempre próximas, independente da quantidade de dados
+    return 4; // Espaçamento mínimo fixo entre as barras do mesmo grupo
   }
 
   @override
@@ -181,8 +212,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
         child: SafeArea(
-          child: Consumer<DashboardProvider>(
-            builder: (context, dashboardProvider, _) {
+          child: Consumer2<DashboardProvider, TransactionProvider>(
+            builder: (context, dashboardProvider, transactionProvider, _) {
+              // Update transactions whenever TransactionProvider changes
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                dashboardProvider.updateTransactions(transactionProvider.transactions);
+              });
+
               final summary = dashboardProvider.summary;
 
               return RefreshIndicator(
@@ -218,7 +254,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       const SizedBox(height: 32),
 
                       // Income vs Expenses Chart
-                      _buildSectionTitle('Receitas vs Despesas'),
+                      _buildSectionTitleWithIncomeExpensesFilter(
+                        'Receitas vs Despesas',
+                        _selectedIncomeExpensesPeriod,
+                        (IncomeExpensesPeriod? newPeriod) {
+                          if (newPeriod != null) {
+                            setState(() {
+                              _selectedIncomeExpensesPeriod = newPeriod;
+                            });
+                          }
+                        },
+                      ),
                       const SizedBox(height: 16),
                       _buildIncomeExpensesChart(dashboardProvider),
                       const SizedBox(height: 32),
@@ -266,8 +312,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   ) {
     return Padding(
       padding: const EdgeInsets.only(left: 4, right: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
@@ -277,30 +323,119 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: Colors.white,
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.2),
-              ),
+          const SizedBox(height: 12),
+          // Clean horizontal pill buttons
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            clipBehavior: Clip.none,
+            child: Row(
+              children: ReservePeriod.values.map((period) {
+                final isSelected = period == selectedPeriod;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: InkWell(
+                    onTap: () => onChanged(period),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: isSelected
+                            ? const LinearGradient(
+                                colors: [Color(0xFF5A67D8), Color(0xFF6B46C1)],
+                              )
+                            : null,
+                        color: isSelected ? null : Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isSelected
+                              ? Colors.transparent
+                              : Colors.white.withOpacity(0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        period.displayName,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
             ),
-            child: DropdownButton<ReservePeriod>(
-              value: selectedPeriod,
-              onChanged: onChanged,
-              underline: const SizedBox(),
-              dropdownColor: const Color(0xFF2d3561),
-              icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-              items: ReservePeriod.values.map((ReservePeriod period) {
-                return DropdownMenuItem<ReservePeriod>(
-                  value: period,
-                  child: Text(period.displayName),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionTitleWithIncomeExpensesFilter(
+    String title,
+    IncomeExpensesPeriod selectedPeriod,
+    ValueChanged<IncomeExpensesPeriod?> onChanged,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, right: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Clean horizontal pill buttons
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            clipBehavior: Clip.none,
+            child: Row(
+              children: IncomeExpensesPeriod.values.map((period) {
+                final isSelected = period == selectedPeriod;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: InkWell(
+                    onTap: () => onChanged(period),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: isSelected
+                            ? const LinearGradient(
+                                colors: [Color(0xFF48BB78), Color(0xFF2F855A)],
+                              )
+                            : null,
+                        color: isSelected ? null : Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isSelected
+                              ? Colors.transparent
+                              : Colors.white.withOpacity(0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        period.displayName,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
                 );
               }).toList(),
             ),
@@ -412,19 +547,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     switch (_selectedPeriod) {
       case ReservePeriod.today:
-        // For today, show just today's data
-        data = provider.getReserveEvolution(0);
+        // For today, show hourly granularity
+        data = provider.getReserveEvolutionToday();
         break;
       case ReservePeriod.lastWeek:
-        // For last week, show weekly data (convert to appropriate format)
-        data = provider.getReserveEvolution(0);
+        // For last week, show daily data
+        data = provider.getReserveEvolutionLastWeek();
         break;
       case ReservePeriod.lastMonth:
-        // For last month, show just one month
-        data = provider.getReserveEvolution(1);
+        // For last month, show daily data
+        data = provider.getReserveEvolutionLastMonth();
         break;
       case ReservePeriod.lastMonths:
-        // For last months, show 6 months (default)
+        // For last months, show 6 months (monthly aggregation)
         data = provider.getReserveEvolution(6);
         break;
     }
@@ -473,14 +608,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   sideTitles: SideTitles(
                     showTitles: true,
                     reservedSize: 30,
-                    interval: 1,
+                    interval: _getBottomTitlesInterval(data.length),
                     getTitlesWidget: (value, meta) {
                       if (value.toInt() >= 0 && value.toInt() < data.length) {
-                        final month = data[value.toInt()].month;
+                        final dateTime = data[value.toInt()].month;
+                        final format = _getDateFormat();
                         return Padding(
                           padding: const EdgeInsets.only(top: 8),
                           child: Text(
-                            DateFormat('MMM', 'pt_BR').format(month),
+                            DateFormat(format, 'pt_BR').format(dateTime),
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.7),
                               fontSize: 10,
@@ -548,13 +684,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildIncomeExpensesChart(DashboardProvider provider) {
-    final data = provider.getMonthlyData(6);
+    // Get data based on selected period
+    final List<MonthlyDataPoint> data;
+
+    switch (_selectedIncomeExpensesPeriod) {
+      case IncomeExpensesPeriod.lastWeek:
+        data = provider.getIncomeExpensesLastWeek();
+        break;
+      case IncomeExpensesPeriod.lastMonth:
+        data = provider.getIncomeExpensesLastMonth();
+        break;
+      case IncomeExpensesPeriod.lastMonths:
+        data = provider.getMonthlyData(6);
+        break;
+      case IncomeExpensesPeriod.lastYear:
+        data = provider.getIncomeExpensesLastYear();
+        break;
+    }
 
     if (data.isEmpty) {
       return _buildEmptyChart('Nenhum dado disponível');
     }
 
+    final barWidth = _getDynamicBarWidth(data.length);
+    final alignment = _getChartAlignment(data.length);
+    final spacing = _getBarSpacing(data.length);
+
     return Container(
+      key: ValueKey('income_expenses_${_selectedIncomeExpensesPeriod.name}_${data.length}'),
       height: 250,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -576,15 +733,37 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: BarChart(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
             BarChartData(
               backgroundColor: Colors.transparent,
-              alignment: BarChartAlignment.spaceAround,
+              alignment: alignment,
               maxY:
                   data
                       .map((e) => e.income > e.expenses ? e.income : e.expenses)
                       .reduce((a, b) => a > b ? a : b) *
                   1.2,
-              barTouchData: BarTouchData(enabled: false),
+              barTouchData: BarTouchData(
+                enabled: true,
+                touchTooltipData: BarTouchTooltipData(
+                  getTooltipColor: (group) => const Color(0xFF2d3561),
+                  tooltipRoundedRadius: 8,
+                  tooltipPadding: const EdgeInsets.all(8),
+                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                    final dataPoint = data[group.x.toInt()];
+                    final isIncome = rodIndex == 0;
+                    final value = isIncome ? dataPoint.income : dataPoint.expenses;
+                    return BarTooltipItem(
+                      '${isIncome ? 'Receita' : 'Despesa'}\n${_currencyFormat.format(value)}',
+                      const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    );
+                  },
+                ),
+              ),
               titlesData: FlTitlesData(
                 show: true,
                 rightTitles: const AxisTitles(
@@ -597,19 +776,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   sideTitles: SideTitles(
                     showTitles: true,
                     reservedSize: 30,
+                    interval: _getIncomeExpensesInterval(data.length),
                     getTitlesWidget: (value, meta) {
-                      if (value.toInt() >= 0 && value.toInt() < data.length) {
-                        final month = data[value.toInt()].month;
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Text(
-                            DateFormat('MMM', 'pt_BR').format(month),
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.7),
-                              fontSize: 10,
+                      final index = value.toInt();
+
+                      // Quando há poucos dados, mostrar todos os labels
+                      if (data.length <= 7) {
+                        if (index >= 0 && index < data.length) {
+                          final dateTime = data[index].month;
+                          final format = _getIncomeExpensesDateFormat();
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              DateFormat(format, 'pt_BR').format(dateTime),
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.7),
+                                fontSize: 10,
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        }
+                      } else {
+                        // Para períodos com muitos dados, aplicar filtro
+                        if (_selectedIncomeExpensesPeriod == IncomeExpensesPeriod.lastMonth) {
+                          // Mostrar labels nos dias 5, 10, 15, 20, 25, 30 (índices 4, 9, 14, 19, 24, 29)
+                          if (!((index + 1) % 5 == 0)) {
+                            return const SizedBox.shrink();
+                          }
+                        }
+
+                        if (index >= 0 && index < data.length) {
+                          final dateTime = data[index].month;
+                          final format = _getIncomeExpensesDateFormat();
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              DateFormat(format, 'pt_BR').format(dateTime),
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.7),
+                                fontSize: 10,
+                              ),
+                            ),
+                          );
+                        }
                       }
                       return const Text('');
                     },
@@ -645,11 +854,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               barGroups: data.asMap().entries.map((entry) {
                 return BarChartGroupData(
                   x: entry.key,
+                  barsSpace: spacing,
                   barRods: [
                     BarChartRodData(
                       toY: entry.value.income,
                       color: const Color(0xFF48BB78),
-                      width: 12,
+                      width: barWidth,
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(4),
                       ),
@@ -657,7 +867,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     BarChartRodData(
                       toY: entry.value.expenses,
                       color: const Color(0xFFE53E3E),
-                      width: 12,
+                      width: barWidth,
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(4),
                       ),
