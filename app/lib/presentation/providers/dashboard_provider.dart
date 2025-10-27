@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/goal_entity.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../../domain/entities/task_entity.dart';
+import '../../domain/usecases/goal/watch_goals_usecase.dart';
+import '../../domain/usecases/task/watch_tasks_by_goal_usecase.dart';
 
 /// Dashboard data model for summary cards
 class DashboardSummary {
@@ -73,26 +76,111 @@ class RiskyGoalData {
 
 /// Dashboard provider for calculating and managing dashboard data
 class DashboardProvider extends ChangeNotifier {
+  final WatchGoalsUseCase _watchGoalsUseCase;
+  final WatchTasksByGoalUseCase _watchTasksByGoalUseCase;
+
   List<TransactionEntity> _transactions = [];
   List<GoalEntity> _goals = [];
-  Map<String, List<TaskEntity>> _tasksByGoal = {};
+  final Map<String, List<TaskEntity>> _tasksByGoal = {};
 
-  /// Update transactions data
+  StreamSubscription? _goalsSubscription;
+  final Map<String, StreamSubscription> _taskSubscriptions = {};
+
+  bool _isLoadingGoals = false;
+  String? _error;
+
+  DashboardProvider({
+    required WatchGoalsUseCase watchGoalsUseCase,
+    required WatchTasksByGoalUseCase watchTasksByGoalUseCase,
+  })  : _watchGoalsUseCase = watchGoalsUseCase,
+        _watchTasksByGoalUseCase = watchTasksByGoalUseCase;
+
+  bool get isLoadingGoals => _isLoadingGoals;
+  String? get error => _error;
+  List<GoalEntity> get goals => _goals;
+  Map<String, List<TaskEntity>> get tasksByGoal => _tasksByGoal;
+
+  /// Watch goals for the dashboard
+  void watchGoals(String userId) {
+    _isLoadingGoals = true;
+    _error = null;
+    notifyListeners();
+
+    _goalsSubscription?.cancel();
+
+    final stream = _watchGoalsUseCase(userId);
+
+    _goalsSubscription = stream.listen(
+      (either) {
+        either.fold(
+          (failure) {
+            _error = failure.message;
+            _isLoadingGoals = false;
+            notifyListeners();
+          },
+          (goals) {
+            _goals = goals;
+            _isLoadingGoals = false;
+            _error = null;
+            notifyListeners();
+
+            // Watch tasks for each goal
+            for (var goal in goals) {
+              _watchTasksForGoal(userId, goal.id);
+            }
+          },
+        );
+      },
+      onError: (error) {
+        _error = error.toString();
+        _isLoadingGoals = false;
+        notifyListeners();
+      },
+    );
+  }
+
+  /// Watch tasks for a specific goal
+  void _watchTasksForGoal(String userId, String goalId) {
+    // Cancel existing subscription for this goal if any
+    _taskSubscriptions[goalId]?.cancel();
+
+    final stream = _watchTasksByGoalUseCase(
+      userId: userId,
+      goalId: goalId,
+    );
+
+    _taskSubscriptions[goalId] = stream.listen(
+      (either) {
+        either.fold(
+          (failure) {
+            debugPrint('Dashboard: Error watching tasks for goal $goalId: ${failure.message}');
+          },
+          (tasks) {
+            _tasksByGoal[goalId] = tasks;
+            notifyListeners();
+          },
+        );
+      },
+      onError: (error) {
+        debugPrint('Dashboard: Error in tasks stream for goal $goalId: $error');
+      },
+    );
+  }
+
+  /// Update transactions data (still accepts external transaction data)
   void updateTransactions(List<TransactionEntity> transactions) {
     _transactions = transactions;
     notifyListeners();
   }
 
-  /// Update goals data
-  void updateGoals(List<GoalEntity> goals) {
-    _goals = goals;
-    notifyListeners();
-  }
-
-  /// Update tasks by goal
-  void updateTasksByGoal(Map<String, List<TaskEntity>> tasksByGoal) {
-    _tasksByGoal = tasksByGoal;
-    notifyListeners();
+  @override
+  void dispose() {
+    _goalsSubscription?.cancel();
+    for (var subscription in _taskSubscriptions.values) {
+      subscription.cancel();
+    }
+    _taskSubscriptions.clear();
+    super.dispose();
   }
 
   /// Calculate total reserve (sum of all transactions)
@@ -212,6 +300,95 @@ class DashboardProvider extends ChangeNotifier {
     return data;
   }
 
+  /// Get daily income/expense data for the last week
+  List<MonthlyDataPoint> getIncomeExpensesLastWeek() {
+    final List<MonthlyDataPoint> data = [];
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    for (int i = 6; i >= 0; i--) {
+      final day = today.subtract(Duration(days: i));
+      final nextDay = day.add(const Duration(days: 1));
+
+      final dayTransactions = _transactions.where((t) =>
+          t.date.isAfter(day.subtract(const Duration(seconds: 1))) &&
+          t.date.isBefore(nextDay));
+
+      final income =
+          dayTransactions.where((t) => t.isIncome).fold(0.0, (sum, t) => sum + t.amount);
+      final expenses =
+          dayTransactions.where((t) => t.isExpense).fold(0.0, (sum, t) => sum + t.amount);
+
+      data.add(MonthlyDataPoint(
+        month: day,
+        income: income,
+        expenses: expenses,
+        balance: income - expenses,
+      ));
+    }
+
+    return data;
+  }
+
+  /// Get daily income/expense data for the last month
+  List<MonthlyDataPoint> getIncomeExpensesLastMonth() {
+    final List<MonthlyDataPoint> data = [];
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    for (int i = 29; i >= 0; i--) {
+      final day = today.subtract(Duration(days: i));
+      final nextDay = day.add(const Duration(days: 1));
+
+      final dayTransactions = _transactions.where((t) =>
+          t.date.isAfter(day.subtract(const Duration(seconds: 1))) &&
+          t.date.isBefore(nextDay));
+
+      final income =
+          dayTransactions.where((t) => t.isIncome).fold(0.0, (sum, t) => sum + t.amount);
+      final expenses =
+          dayTransactions.where((t) => t.isExpense).fold(0.0, (sum, t) => sum + t.amount);
+
+      data.add(MonthlyDataPoint(
+        month: day,
+        income: income,
+        expenses: expenses,
+        balance: income - expenses,
+      ));
+    }
+
+    return data;
+  }
+
+  /// Get monthly income/expense data for the last year
+  List<MonthlyDataPoint> getIncomeExpensesLastYear() {
+    final List<MonthlyDataPoint> data = [];
+    final now = DateTime.now();
+
+    for (int i = 11; i >= 0; i--) {
+      final month = DateTime(now.year, now.month - i, 1);
+      final nextMonth = DateTime(now.year, now.month - i + 1, 1);
+
+      final monthTransactions = _transactions.where((t) =>
+          t.date.isAfter(month.subtract(const Duration(days: 1))) &&
+          t.date.isBefore(nextMonth));
+
+      final income =
+          monthTransactions.where((t) => t.isIncome).fold(0.0, (sum, t) => sum + t.amount);
+      final expenses =
+          monthTransactions.where((t) => t.isExpense).fold(0.0, (sum, t) => sum + t.amount);
+
+      data.add(MonthlyDataPoint(
+        month: month,
+        income: income,
+        expenses: expenses,
+        balance: income - expenses,
+      ));
+    }
+
+    return data;
+  }
+
   /// Get reserve evolution over the last N months
   List<MonthlyDataPoint> getReserveEvolution(int months) {
     final List<MonthlyDataPoint> data = [];
@@ -237,6 +414,132 @@ class DashboardProvider extends ChangeNotifier {
         income: 0, // Not used for reserve evolution
         expenses: 0, // Not used for reserve evolution
         balance: runningBalance,
+      ));
+    }
+
+    return data;
+  }
+
+  /// Get reserve evolution for today (hourly granularity)
+  List<MonthlyDataPoint> getReserveEvolutionToday() {
+    final List<MonthlyDataPoint> data = [];
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
+
+    // Sort transactions by date
+    final sortedTransactions = List<TransactionEntity>.from(_transactions)
+      ..sort((a, b) => a.date.compareTo(b.date));
+
+    // Get all transactions up to today
+    final transactionsUpToToday = sortedTransactions.where(
+        (t) => t.date.isBefore(today));
+
+    // Calculate balance at start of day
+    final startOfDayBalance = transactionsUpToToday.fold(0.0, (sum, t) => sum + t.signedAmount);
+
+    // Get today's transactions
+    final todayTransactions = sortedTransactions.where(
+        (t) => t.date.isAfter(today.subtract(const Duration(seconds: 1))) &&
+               t.date.isBefore(tomorrow));
+
+    if (todayTransactions.isEmpty) {
+      // If no transactions today, show start and end of day with same balance
+      data.add(MonthlyDataPoint(
+        month: today,
+        income: 0,
+        expenses: 0,
+        balance: startOfDayBalance,
+      ));
+      data.add(MonthlyDataPoint(
+        month: now,
+        income: 0,
+        expenses: 0,
+        balance: startOfDayBalance,
+      ));
+    } else {
+      // Add data point at start of day
+      data.add(MonthlyDataPoint(
+        month: today,
+        income: 0,
+        expenses: 0,
+        balance: startOfDayBalance,
+      ));
+
+      // Add data points for each transaction
+      double runningBalance = startOfDayBalance;
+      for (var transaction in todayTransactions) {
+        runningBalance += transaction.signedAmount;
+        data.add(MonthlyDataPoint(
+          month: transaction.date,
+          income: 0,
+          expenses: 0,
+          balance: runningBalance,
+        ));
+      }
+    }
+
+    return data;
+  }
+
+  /// Get reserve evolution for the last week (daily granularity)
+  List<MonthlyDataPoint> getReserveEvolutionLastWeek() {
+    final List<MonthlyDataPoint> data = [];
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    // Sort transactions by date
+    final sortedTransactions = List<TransactionEntity>.from(_transactions)
+      ..sort((a, b) => a.date.compareTo(b.date));
+
+    // Generate data points for last 7 days
+    for (int i = 6; i >= 0; i--) {
+      final day = today.subtract(Duration(days: i));
+      final nextDay = day.add(const Duration(days: 1));
+
+      // Calculate balance up to end of this day
+      final transactionsUpToDay = sortedTransactions.where(
+          (t) => t.date.isBefore(nextDay));
+
+      final balance = transactionsUpToDay.fold(0.0, (sum, t) => sum + t.signedAmount);
+
+      data.add(MonthlyDataPoint(
+        month: day,
+        income: 0,
+        expenses: 0,
+        balance: balance,
+      ));
+    }
+
+    return data;
+  }
+
+  /// Get reserve evolution for the last month (daily granularity)
+  List<MonthlyDataPoint> getReserveEvolutionLastMonth() {
+    final List<MonthlyDataPoint> data = [];
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    // Sort transactions by date
+    final sortedTransactions = List<TransactionEntity>.from(_transactions)
+      ..sort((a, b) => a.date.compareTo(b.date));
+
+    // Generate data points for last 30 days
+    for (int i = 29; i >= 0; i--) {
+      final day = today.subtract(Duration(days: i));
+      final nextDay = day.add(const Duration(days: 1));
+
+      // Calculate balance up to end of this day
+      final transactionsUpToDay = sortedTransactions.where(
+          (t) => t.date.isBefore(nextDay));
+
+      final balance = transactionsUpToDay.fold(0.0, (sum, t) => sum + t.signedAmount);
+
+      data.add(MonthlyDataPoint(
+        month: day,
+        income: 0,
+        expenses: 0,
+        balance: balance,
       ));
     }
 

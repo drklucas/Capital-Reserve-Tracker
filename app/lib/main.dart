@@ -52,6 +52,8 @@ import 'presentation/providers/transaction_provider.dart';
 import 'presentation/providers/goal_provider.dart';
 import 'presentation/providers/task_provider.dart';
 import 'presentation/providers/dashboard_provider.dart';
+import 'presentation/providers/goals_screen_provider.dart';
+import 'presentation/providers/home_screen_provider.dart';
 import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/auth/register_screen.dart';
 import 'presentation/screens/auth/forgot_password_screen.dart';
@@ -252,7 +254,24 @@ void main() async {
         ),
 
         ChangeNotifierProvider<DashboardProvider>(
-          create: (_) => DashboardProvider(),
+          create: (_) => DashboardProvider(
+            watchGoalsUseCase: watchGoalsUseCase,
+            watchTasksByGoalUseCase: watchTasksByGoalUseCase,
+          ),
+        ),
+
+        ChangeNotifierProvider<GoalsScreenProvider>(
+          create: (_) => GoalsScreenProvider(
+            watchGoalsUseCase: watchGoalsUseCase,
+            watchTasksByGoalUseCase: watchTasksByGoalUseCase,
+          ),
+        ),
+
+        ChangeNotifierProvider<HomeScreenProvider>(
+          create: (_) => HomeScreenProvider(
+            watchGoalsUseCase: watchGoalsUseCase,
+            watchTasksByGoalUseCase: watchTasksByGoalUseCase,
+          ),
         ),
       ],
       child: const MyApp(),
