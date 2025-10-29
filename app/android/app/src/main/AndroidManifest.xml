@@ -30,6 +30,45 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- Widget de Teste Simples -->
+        <receiver
+            android:name="com.example.app.SimpleTestWidget"
+            android:exported="true"
+            android:label="Widget Teste">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/simple_test_widget_info" />
+        </receiver>
+
+        <!-- Widget de Receitas e Despesas V2 -->
+        <receiver
+            android:name="com.example.app.IncomeExpenseWidgetV2"
+            android:exported="true"
+            android:label="Receitas e Despesas">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/income_expense_widget_v2_info" />
+        </receiver>
+
+        <!-- Widget de Evolução da Reserva V2 -->
+        <receiver
+            android:name="com.example.app.ReserveEvolutionWidgetV2"
+            android:exported="true"
+            android:label="Evolução da Reserva">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/reserve_evolution_widget_v2_info" />
+        </receiver>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

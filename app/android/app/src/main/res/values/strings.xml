@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Capital Reserve Tracker</string>
+    <string name="income_expense_widget_description">Gráfico de receitas e despesas dos últimos 6 meses</string>
+    <string name="reserve_evolution_widget_description">Evolução da reserva financeira ao longo do tempo</string>
+</resources>

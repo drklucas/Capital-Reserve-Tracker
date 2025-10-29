@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/widget_background">
+
+    <!-- Cabeçalho -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="12dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Receitas &amp; Despesas"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/refresh_button"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/ic_menu_rotate"
+            android:contentDescription="Atualizar"
+            android:tint="#FFFFFF" />
+    </LinearLayout>
+
+    <!-- Gráfico de Barras (últimos 6 meses) -->
+    <LinearLayout
+        android:id="@+id/chart_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal"
+        android:gravity="bottom"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
+
+        <!-- Mês 1 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="bottom"
+            android:paddingHorizontal="2dp">
+
+            <View
+                android:id="@+id/bar_income_1"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:background="#4CAF50" />
+
+            <View
+                android:id="@+id/bar_expense_1"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:background="#F44336"
+                android:layout_marginTop="2dp" />
+
+            <TextView
+                android:id="@+id/month_label_1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Jan"
+                android:textColor="#B0B0B0"
+                android:textSize="10sp"
+                android:gravity="center"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <!-- Mês 2 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="bottom"
+            android:paddingHorizontal="2dp">
+
+            <View
+                android:id="@+id/bar_income_2"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:background="#4CAF50" />
+
+            <View
+                android:id="@+id/bar_expense_2"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:background="#F44336"
+                android:layout_marginTop="2dp" />
+
+            <TextView
+                android:id="@+id/month_label_2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Fev"
+                android:textColor="#B0B0B0"
+                android:textSize="10sp"
+                android:gravity="center"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <!-- Mês 3 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="bottom"
+            android:paddingHorizontal="2dp">
+
+            <View
+                android:id="@+id/bar_income_3"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:background="#4CAF50" />
+
+            <View
+                android:id="@+id/bar_expense_3"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:background="#F44336"
+                android:layout_marginTop="2dp" />
+
+            <TextView
+                android:id="@+id/month_label_3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Mar"
+                android:textColor="#B0B0B0"
+                android:textSize="10sp"
+                android:gravity="center"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <!-- Mês 4 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="bottom"
+            android:paddingHorizontal="2dp">
+
+            <View
+                android:id="@+id/bar_income_4"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:background="#4CAF50" />
+
+            <View
+                android:id="@+id/bar_expense_4"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:background="#F44336"
+                android:layout_marginTop="2dp" />
+
+            <TextView
+                android:id="@+id/month_label_4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Abr"
+                android:textColor="#B0B0B0"
+                android:textSize="10sp"
+                android:gravity="center"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <!-- Mês 5 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="bottom"
+            android:paddingHorizontal="2dp">
+
+            <View
+                android:id="@+id/bar_income_5"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:background="#4CAF50" />
+
+            <View
+                android:id="@+id/bar_expense_5"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:background="#F44336"
+                android:layout_marginTop="2dp" />
+
+            <TextView
+                android:id="@+id/month_label_5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Mai"
+                android:textColor="#B0B0B0"
+                android:textSize="10sp"
+                android:gravity="center"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <!-- Mês 6 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="bottom"
+            android:paddingHorizontal="2dp">
+
+            <View
+                android:id="@+id/bar_income_6"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:background="#4CAF50" />
+
+            <View
+                android:id="@+id/bar_expense_6"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:background="#F44336"
+                android:layout_marginTop="2dp" />
+
+            <TextView
+                android:id="@+id/month_label_6"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Jun"
+                android:textColor="#B0B0B0"
+                android:textSize="10sp"
+                android:gravity="center"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Legenda -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:paddingTop="8dp">
+
+        <View
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:background="#4CAF50" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" Receitas  "
+            android:textColor="#FFFFFF"
+            android:textSize="12sp" />
+
+        <View
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:background="#F44336" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" Despesas"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- Última atualização -->
+    <TextView
+        android:id="@+id/last_update"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Atualizado em: --"
+        android:textColor="#808080"
+        android:textSize="10sp"
+        android:gravity="center"
+        android:paddingTop="8dp" />
+
+</LinearLayout>

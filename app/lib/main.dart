@@ -54,6 +54,10 @@ import 'presentation/providers/task_provider.dart';
 import 'presentation/providers/dashboard_provider.dart';
 import 'presentation/providers/goals_screen_provider.dart';
 import 'presentation/providers/home_screen_provider.dart';
+import 'presentation/providers/widget_data_provider.dart';
+
+// Services
+import 'core/services/home_widget_service.dart';
 import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/auth/register_screen.dart';
 import 'presentation/screens/auth/forgot_password_screen.dart';
@@ -109,6 +113,9 @@ void main() async {
   // Initialize locale data for Brazilian Portuguese
   await initializeDateFormatting('pt_BR', null);
   Intl.defaultLocale = 'pt_BR';
+
+  // Initialize Home Widget Service
+  await HomeWidgetService.initialize();
 
   // Initialize Firebase instances
   final firebaseAuth = FirebaseAuth.instance;
@@ -271,6 +278,13 @@ void main() async {
           create: (_) => HomeScreenProvider(
             watchGoalsUseCase: watchGoalsUseCase,
             watchTasksByGoalUseCase: watchTasksByGoalUseCase,
+          ),
+        ),
+
+        ChangeNotifierProvider<WidgetDataProvider>(
+          create: (_) => WidgetDataProvider(
+            getTransactionsUseCase: getTransactionsUseCase,
+            getGoalsUseCase: getGoalsUseCase,
           ),
         ),
       ],

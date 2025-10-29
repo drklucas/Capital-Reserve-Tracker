@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../../core/services/mock_data_service.dart';
+import '../../../core/utils/widget_updater.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/goal_provider.dart';
 import '../../providers/transaction_provider.dart';
@@ -69,6 +70,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       debugPrint('HomeScreen: Loading data for user ${authProvider.user!.id}');
       context.read<HomeScreenProvider>().watchGoals(authProvider.user!.id);
       context.read<TransactionProvider>().watchTransactions(userId: authProvider.user!.id);
+
+      // Atualizar widgets da home screen após carregar os dados
+      debugPrint('HomeScreen: Agendando atualização de widgets em 3 segundos...');
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          debugPrint('HomeScreen: Chamando WidgetUpdater.updateWidgets...');
+          WidgetUpdater.updateWidgets(context);
+        } else {
+          debugPrint('HomeScreen: Widget não montado, pulando atualização');
+        }
+      });
     } else {
       debugPrint('HomeScreen: User is null, waiting for auth...');
       // Try again after a short delay if user is not ready yet
