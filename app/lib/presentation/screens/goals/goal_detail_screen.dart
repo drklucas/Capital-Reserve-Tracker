@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../domain/entities/goal_entity.dart';
 import '../../../domain/entities/task_entity.dart';
+import '../../../core/constants/goal_colors.dart';
 import '../../providers/goal_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/task_provider.dart';
+import '../../widgets/goal_themed_scaffold.dart';
 import 'add_goal_screen.dart';
 
 class GoalDetailScreen extends StatefulWidget {
@@ -274,9 +276,15 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
+    return Consumer<GoalProvider>(
+      builder: (context, goalProvider, _) {
+        final goal = goalProvider.selectedGoal;
+        final gradient = GoalThemedScaffold.getGradient(goal, fallbackIndex: 0);
+        final primaryColor = GoalThemedScaffold.getPrimaryColor(goal, fallbackIndex: 0);
+
+        return Scaffold(
+          extendBodyBehindAppBar: true,
+          appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: const Text(
@@ -382,9 +390,9 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
             child: Consumer<GoalProvider>(
               builder: (context, goalProvider, _) {
                 if (goalProvider.status == GoalProviderStatus.loading) {
-                  return const Center(
+                  return Center(
                     child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
                     ),
                   );
                 }
@@ -407,7 +415,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                           icon: const Icon(Icons.refresh),
                           label: const Text('Tentar Novamente'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white.withOpacity(0.2),
+                            backgroundColor: primaryColor,
                             foregroundColor: Colors.white,
                           ),
                         ),
@@ -428,7 +436,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
 
                 return RefreshIndicator(
                   onRefresh: _loadGoalDetails,
-                  color: const Color(0xFF3B82F6),
+                  color: primaryColor,
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     child: Padding(
@@ -439,17 +447,17 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                           const SizedBox(height: 20),
 
                           // Title and Status Card
-                          _buildHeaderCard(goal),
+                          _buildHeaderCard(goal, gradient),
 
                           const SizedBox(height: 16),
 
                           // Progress Card
-                          _buildProgressCard(),
+                          _buildProgressCard(primaryColor),
 
                           const SizedBox(height: 16),
 
                           // Stats Card
-                          _buildStatsCard(goal),
+                          _buildStatsCard(goal, primaryColor),
 
                           const SizedBox(height: 16),
 
@@ -469,15 +477,11 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
       ),
       floatingActionButton: Container(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF10B981), Color(0xFF059669)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          gradient: gradient,
           borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF10B981).withOpacity(0.4),
+              color: primaryColor.withOpacity(0.4),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
@@ -497,25 +501,20 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
           ),
         ),
       ),
+        );
+      },
     );
   }
 
-  Widget _buildHeaderCard(GoalEntity goal) {
+  Widget _buildHeaderCard(GoalEntity goal, LinearGradient gradient) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF5A67D8),
-            Color(0xFF6B46C1),
-          ],
-        ),
+        gradient: gradient,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF5A67D8).withOpacity(0.3),
+            color: gradient.colors.first.withOpacity(0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -554,7 +553,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     );
   }
 
-  Widget _buildProgressCard() {
+  Widget _buildProgressCard(Color primaryColor) {
     return Consumer<TaskProvider>(
       builder: (context, taskProvider, _) {
         final totalTasks = taskProvider.taskCount;
@@ -598,10 +597,10 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 children: [
                   Text(
                     '$completedTasks de $totalTasks tarefas',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF3B82F6),
+                      color: primaryColor,
                     ),
                   ),
                   Text(
@@ -622,7 +621,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                   minHeight: 12,
                   backgroundColor: Colors.white.withOpacity(0.2),
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    progress >= 100 ? Colors.green : const Color(0xFF3B82F6),
+                    progress >= 100 ? Colors.green : primaryColor,
                   ),
                 ),
               ),
@@ -644,7 +643,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     );
   }
 
-  Widget _buildStatsCard(GoalEntity goal) {
+  Widget _buildStatsCard(GoalEntity goal, Color primaryColor) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -681,6 +680,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
             'Período',
             '${_dateFormat.format(goal.startDate)} - ${_dateFormat.format(goal.targetDate)}',
             Icons.date_range,
+            primaryColor,
           ),
           const SizedBox(height: 16),
           _buildStatRow(
@@ -689,6 +689,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 ? 'há ${DateTime.now().difference(goal.targetDate).inDays} dias'
                 : '${goal.daysRemaining} dias',
             Icons.calendar_today,
+            primaryColor,
             isWarning: goal.isOverdue,
           ),
           const SizedBox(height: 16),
@@ -696,6 +697,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
             'Dias decorridos',
             '${goal.daysElapsed} de ${goal.totalDays} dias',
             Icons.access_time,
+            primaryColor,
           ),
         ],
       ),
@@ -705,7 +707,8 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
   Widget _buildStatRow(
     String label,
     String value,
-    IconData icon, {
+    IconData icon,
+    Color primaryColor, {
     bool isWarning = false,
   }) {
     return Container(
@@ -714,7 +717,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
         color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: (isWarning ? Colors.red : Colors.blue).withOpacity(0.3),
+          color: (isWarning ? Colors.red : primaryColor).withOpacity(0.3),
           width: 1,
         ),
       ),
@@ -723,12 +726,12 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: (isWarning ? Colors.red : Colors.blue).withOpacity(0.2),
+              color: (isWarning ? Colors.red : primaryColor).withOpacity(0.2),
               shape: BoxShape.circle,
             ),
             child: Icon(
               icon,
-              color: isWarning ? Colors.red : Colors.blue,
+              color: isWarning ? Colors.red : primaryColor,
               size: 20,
             ),
           ),
