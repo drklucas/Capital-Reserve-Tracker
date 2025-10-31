@@ -18,6 +18,7 @@ class GoalModel {
   final List<String> associatedTransactionIds;
   final DateTime createdAt;
   final DateTime? updatedAt;
+  final int colorIndex;
 
   GoalModel({
     required this.id,
@@ -32,6 +33,7 @@ class GoalModel {
     required this.associatedTransactionIds,
     required this.createdAt,
     this.updatedAt,
+    this.colorIndex = -1,
   });
 
   /// Convert model to Firestore document
@@ -48,6 +50,7 @@ class GoalModel {
       'associatedTransactionIds': associatedTransactionIds,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
+      'colorIndex': colorIndex,
     };
   }
 
@@ -74,6 +77,7 @@ class GoalModel {
       updatedAt: data['updatedAt'] != null
           ? (data['updatedAt'] as Timestamp).toDate()
           : null,
+      colorIndex: data['colorIndex'] as int? ?? -1,
     );
   }
 
@@ -97,6 +101,7 @@ class GoalModel {
       updatedAt: data['updatedAt'] != null
           ? (data['updatedAt'] as Timestamp).toDate()
           : null,
+      colorIndex: data['colorIndex'] as int? ?? -1,
     );
   }
 
@@ -115,6 +120,7 @@ class GoalModel {
       'associatedTransactionIds': associatedTransactionIds,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
+      'colorIndex': colorIndex,
     };
   }
 
@@ -138,6 +144,7 @@ class GoalModel {
       updatedAt: json['updatedAt'] != null
           ? DateTime.parse(json['updatedAt'] as String)
           : null,
+      colorIndex: json['colorIndex'] as int? ?? -1,
     );
   }
 
@@ -156,6 +163,7 @@ class GoalModel {
       associatedTransactionIds: associatedTransactionIds,
       createdAt: createdAt,
       updatedAt: updatedAt,
+      colorIndex: colorIndex,
     );
   }
 
@@ -174,6 +182,7 @@ class GoalModel {
       associatedTransactionIds: entity.associatedTransactionIds,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
+      colorIndex: entity.colorIndex,
     );
   }
 
@@ -191,6 +200,7 @@ class GoalModel {
     List<String>? associatedTransactionIds,
     DateTime? createdAt,
     DateTime? updatedAt,
+    int? colorIndex,
   }) {
     return GoalModel(
       id: id ?? this.id,
@@ -206,6 +216,7 @@ class GoalModel {
           associatedTransactionIds ?? this.associatedTransactionIds,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      colorIndex: colorIndex ?? this.colorIndex,
     );
   }
 }

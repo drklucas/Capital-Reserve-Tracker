@@ -79,6 +79,10 @@ class GoalEntity extends Equatable {
   /// Timestamp when the goal was last updated
   final DateTime? updatedAt;
 
+  /// Color index for the goal (0-based, maps to predefined colors)
+  /// Defaults to -1 which means auto-assign based on goal index
+  final int colorIndex;
+
   const GoalEntity({
     required this.id,
     required this.userId,
@@ -92,6 +96,7 @@ class GoalEntity extends Equatable {
     required this.associatedTransactionIds,
     required this.createdAt,
     this.updatedAt,
+    this.colorIndex = -1,
   });
 
   /// Calculate progress percentage (0-100)
@@ -195,6 +200,7 @@ class GoalEntity extends Equatable {
     List<String>? associatedTransactionIds,
     DateTime? createdAt,
     DateTime? updatedAt,
+    int? colorIndex,
   }) {
     return GoalEntity(
       id: id ?? this.id,
@@ -210,6 +216,7 @@ class GoalEntity extends Equatable {
           associatedTransactionIds ?? this.associatedTransactionIds,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      colorIndex: colorIndex ?? this.colorIndex,
     );
   }
 
@@ -227,6 +234,7 @@ class GoalEntity extends Equatable {
         associatedTransactionIds,
         createdAt,
         updatedAt,
+        colorIndex,
       ];
 
   @override

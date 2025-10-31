@@ -34,6 +34,36 @@ class GoalsScreenProvider extends ChangeNotifier {
   List<GoalEntity> get goals => _goals;
   Map<String, List<TaskEntity>> get tasksByGoal => _tasksByGoal;
 
+  /// Retorna apenas as metas ativas
+  List<GoalEntity> get activeGoals =>
+      _goals.where((goal) => goal.status == GoalStatus.active).toList();
+
+  /// Retorna apenas as metas concluídas
+  List<GoalEntity> get completedGoals =>
+      _goals.where((goal) => goal.status == GoalStatus.completed).toList();
+
+  /// Total de tarefas para metas ativas
+  int get totalTasksForActiveGoals {
+    final activeGoalIds = activeGoals.map((g) => g.id).toSet();
+    int total = 0;
+    for (var goalId in activeGoalIds) {
+      total += (_tasksByGoal[goalId] ?? []).length;
+    }
+    return total;
+  }
+
+  /// Total de tarefas concluídas para metas ativas
+  int get completedTasksForActiveGoals {
+    final activeGoalIds = activeGoals.map((g) => g.id).toSet();
+    int completed = 0;
+    for (var goalId in activeGoalIds) {
+      completed += (_tasksByGoal[goalId] ?? [])
+          .where((task) => task.isCompleted)
+          .length;
+    }
+    return completed;
+  }
+
   /// Retorna as tarefas de uma meta específica
   List<TaskEntity> getTasksForGoal(String goalId) {
     return _tasksByGoal[goalId] ?? [];

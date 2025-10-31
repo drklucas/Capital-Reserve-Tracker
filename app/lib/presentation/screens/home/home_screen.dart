@@ -26,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late Animation<Offset> _slideAnimation;
 
   // Period selection for stats overview
-  int _selectedPeriodIndex = 0; // 0 = Hoje, 1 = Semana, 2 = Mês
+  int _selectedPeriodIndex = 2; // 0 = Hoje, 1 = Semana, 2 = Mês
 
   @override
   void initState() {

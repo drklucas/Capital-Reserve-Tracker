@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../providers/goal_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/goals_screen_provider.dart';
 import '../../../domain/entities/goal_entity.dart';
@@ -192,12 +191,8 @@ class _GoalsScreenState extends State<GoalsScreen> {
                         children: [
                           const SizedBox(height: 20),
 
-                          // Summary Card (ainda usa GoalProvider global)
-                          Consumer<GoalProvider>(
-                            builder: (context, goalProvider, _) {
-                              return _buildSummaryCard(goalProvider);
-                            },
-                          ),
+                          // Summary Card - usando GoalsScreenProvider
+                          _buildSummaryCard(goalsScreenProvider),
 
                           const SizedBox(height: 24),
 
@@ -286,7 +281,7 @@ class _GoalsScreenState extends State<GoalsScreen> {
     );
   }
 
-  Widget _buildSummaryCard(GoalProvider goalProvider) {
+  Widget _buildSummaryCard(GoalsScreenProvider goalsScreenProvider) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -324,19 +319,19 @@ class _GoalsScreenState extends State<GoalsScreen> {
             children: [
               _buildSummaryItem(
                 'Ativas',
-                goalProvider.activeGoals.length.toString(),
+                goalsScreenProvider.activeGoals.length.toString(),
                 Colors.blue,
                 Icons.flag,
               ),
               _buildSummaryItem(
                 'Concluídas',
-                goalProvider.completedGoals.length.toString(),
+                goalsScreenProvider.completedGoals.length.toString(),
                 Colors.green,
                 Icons.check_circle,
               ),
               _buildSummaryItem(
                 'Tarefas',
-                '${goalProvider.completedTasksForActiveGoals}/${goalProvider.totalTasksForActiveGoals}',
+                '${goalsScreenProvider.completedTasksForActiveGoals}/${goalsScreenProvider.totalTasksForActiveGoals}',
                 Colors.orange,
                 Icons.task_alt,
               ),

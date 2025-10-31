@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
 import '../../../domain/entities/goal_entity.dart';
+import '../../../core/constants/goal_colors.dart';
 import '../../providers/goal_provider.dart';
 import '../../providers/auth_provider.dart';
 
@@ -26,6 +27,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
 
   DateTime _startDate = DateTime.now();
   DateTime _targetDate = DateTime.now().add(const Duration(days: 30));
+  int _selectedColorIndex = -1; // -1 = auto
 
   bool _isLoading = false;
 
@@ -40,6 +42,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
       _descriptionController.text = widget.goal!.description;
       _startDate = widget.goal!.startDate;
       _targetDate = widget.goal!.targetDate;
+      _selectedColorIndex = widget.goal!.colorIndex;
     }
   }
 
@@ -146,6 +149,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
         associatedTransactionIds: widget.goal?.associatedTransactionIds ?? [],
         createdAt: widget.goal?.createdAt ?? DateTime.now(),
         updatedAt: widget.goal != null ? DateTime.now() : null,
+        colorIndex: _selectedColorIndex,
       );
 
       final success = widget.goal == null
@@ -288,6 +292,17 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                     ),
                     const SizedBox(height: 12),
                     _buildDurationInfo(),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+
+                // Color Picker Card
+                _buildCardSection(
+                  title: 'Cor da Meta',
+                  icon: Icons.palette,
+                  children: [
+                    _buildColorPicker(),
                   ],
                 ),
 
@@ -549,6 +564,98 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                 ],
               ),
       ),
+    );
+  }
+
+  Widget _buildColorPicker() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Escolha uma cor para identificar sua meta',
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: List.generate(
+            GoalColors.colorCount,
+            (index) => GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedColorIndex = index;
+                });
+              },
+              child: Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: GoalColors.getGradient(index),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: _selectedColorIndex == index
+                        ? Colors.white
+                        : Colors.transparent,
+                    width: 3,
+                  ),
+                  boxShadow: _selectedColorIndex == index
+                      ? [
+                          BoxShadow(
+                            color: Colors.white.withOpacity(0.5),
+                            blurRadius: 8,
+                            spreadRadius: 2,
+                          ),
+                        ]
+                      : null,
+                ),
+                child: _selectedColorIndex == index
+                    ? const Icon(
+                        Icons.check,
+                        color: Colors.white,
+                        size: 28,
+                      )
+                    : null,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (_selectedColorIndex >= 0)
+          Row(
+            children: [
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  gradient: GoalColors.getGradient(_selectedColorIndex),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                GoalColors.getColorName(_selectedColorIndex),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          )
+        else
+          const Text(
+            'Cor automática (baseada na posição)',
+            style: TextStyle(
+              color: Colors.white60,
+              fontSize: 14,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+      ],
     );
   }
 }

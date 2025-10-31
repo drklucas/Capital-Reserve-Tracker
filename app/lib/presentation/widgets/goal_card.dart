@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/goal_entity.dart';
 import '../../domain/entities/task_entity.dart';
+import '../../core/constants/goal_colors.dart';
 import '../screens/goals/goal_detail_screen.dart';
 
 /// Shared GoalCard widget used across the app
@@ -28,31 +29,8 @@ class GoalCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isOverdue = goal.isOverdue;
 
-    // Gradient colors for different goal cards
-    final gradients = [
-      const LinearGradient(
-        colors: [Color(0xFFEC4899), Color(0xFF8B5CF6)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-      const LinearGradient(
-        colors: [Color(0xFF8B5CF6), Color(0xFF3B82F6)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-      const LinearGradient(
-        colors: [Color(0xFFF59E0B), Color(0xFFEF4444)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-      const LinearGradient(
-        colors: [Color(0xFF10B981), Color(0xFF059669)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-    ];
-
-    final gradient = gradients[index % gradients.length];
+    // Get gradient from goal's color index, use index as fallback
+    final gradient = GoalColors.getGradient(goal.colorIndex, fallbackIndex: index);
 
     // Calculate task progress
     final completedTasks = tasks.where((t) => t.isCompleted).length;
