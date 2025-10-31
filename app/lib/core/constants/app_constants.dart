@@ -4,7 +4,7 @@ class AppConstants {
   AppConstants._();
 
   /// App Information
-  static const String appName = 'Capital Reserve Tracker';
+  static const String appName = 'MyGoals';
   static const String appVersion = '1.0.0';
   static const String appDescription =
       'Track your capital reserves for your sabbatical year goal';

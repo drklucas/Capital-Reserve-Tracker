@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -22,8 +23,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late AnimationController _fadeController;
   late AnimationController _slideController;
+  late AnimationController _backgroundController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  late Animation<double> _backgroundAnimation;
 
   // Period selection for stats overview
   int _selectedPeriodIndex = 2; // 0 = Hoje, 1 = Semana, 2 = Mês
@@ -42,6 +45,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       vsync: this,
     );
 
+    _backgroundController = AnimationController(
+      duration: const Duration(seconds: 8),
+      vsync: this,
+    )..repeat(reverse: true);
+
     _fadeAnimation = CurvedAnimation(
       parent: _fadeController,
       curve: Curves.easeIn,
@@ -53,6 +61,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     ).animate(CurvedAnimation(
       parent: _slideController,
       curve: Curves.easeOutCubic,
+    ));
+
+    _backgroundAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _backgroundController,
+      curve: Curves.easeInOut,
     ));
 
     _fadeController.forward();
@@ -96,143 +112,262 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void dispose() {
     _fadeController.dispose();
     _slideController.dispose();
+    _backgroundController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          AppConstants.appName,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-            color: Colors.white, 
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: ClipRRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+            child: AppBar(
+              backgroundColor: Colors.black.withOpacity(0.1),
+              elevation: 0,
+              title: Text(
+                AppConstants.appName,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
+                  color: Colors.white,
+                ),
+              ),
+              actions: [
+                IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: const Icon(Icons.notifications_outlined, size: 20),
+                  ),
+                  onPressed: () {
+                    // TODO: Implement notifications
+                  },
+                ),
+                const SizedBox(width: 8),
+                Consumer<AppAuthProvider>(
+                  builder: (context, authProvider, _) {
+                    return PopupMenuButton<String>(
+                      child: Hero(
+                        tag: 'user_avatar',
+                        child: GestureDetector(
+                          onLongPress: () {
+                            // Hidden feature: show mock data option on long press
+                            _showMockDataDialog(context);
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.only(right: 16),
+                            child: CircleAvatar(
+                              radius: 20,
+                              backgroundColor: const Color(0xFF5A67D8),
+                              child: Text(
+                                authProvider.userInitials,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      onSelected: (value) async {
+                        switch (value) {
+                          case 'profile':
+                            // TODO: Navigate to profile
+                            break;
+                          case 'settings':
+                            // TODO: Navigate to settings
+                            break;
+                          case 'logout':
+                            await authProvider.signOut();
+                            if (context.mounted) {
+                              Navigator.pushReplacementNamed(
+                                context,
+                                AppConstants.loginRoute,
+                              );
+                            }
+                            break;
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'profile',
+                          child: Row(
+                            children: [
+                              Icon(Icons.person_outline),
+                              SizedBox(width: 8),
+                              Text('Perfil'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'settings',
+                          child: Row(
+                            children: [
+                              Icon(Icons.settings_outlined),
+                              SizedBox(width: 8),
+                              Text('Configurações'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuDivider(),
+                        const PopupMenuItem(
+                          value: 'logout',
+                          child: Row(
+                            children: [
+                              Icon(Icons.logout),
+                              SizedBox(width: 8),
+                              Text('Sair'),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
-        actions: [
-          IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.notifications_outlined, size: 20),
-            ),
-            onPressed: () {
-              // TODO: Implement notifications
-            },
-          ),
-          const SizedBox(width: 8),
-          Consumer<AppAuthProvider>(
-            builder: (context, authProvider, _) {
-              return PopupMenuButton<String>(
-                child: Hero(
-                  tag: 'user_avatar',
-                  child: GestureDetector(
-                    onLongPress: () {
-                      // Hidden feature: show mock data option on long press
-                      _showMockDataDialog(context);
-                    },
+      ),
+      body: Stack(
+        children: [
+          // Animated Background Layer (separated from content)
+          AnimatedBuilder(
+            animation: _backgroundAnimation,
+            builder: (context, child) {
+              return Stack(
+                children: [
+                  // Modern Complex Gradient Background - Darker Blue & Purple
+                  Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFF060811), // Almost black with blue tint
+                          Color(0xFF0D0D1F), // Very dark navy
+                          Color(0xFF1A0F3D), // Dark purple-black
+                          Color(0xFF0F1F35), // Dark ocean blue-black
+                        ],
+                        stops: [0.0, 0.3, 0.6, 1.0],
+                      ),
+                    ),
+                  ),
+                  // Animated Purple glow - Top Right (MUITO VISÍVEL)
+                  Positioned.fill(
                     child: Container(
-                      margin: const EdgeInsets.only(right: 16),
-                      child: CircleAvatar(
-                        radius: 20,
-                        backgroundColor: const Color(0xFF5A67D8),
-                        child: Text(
-                          authProvider.userInitials,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          center: Alignment(
+                            0.3 + (0.8 * _backgroundAnimation.value),
+                            -0.5 - (0.6 * _backgroundAnimation.value),
                           ),
+                          radius: 1.2,
+                          colors: [
+                            const Color(0xFF8B5CF6).withOpacity(0.50), // Purple MUITO visível
+                            const Color(0xFF6B46C1).withOpacity(0.35), // Purple intermediário
+                            Colors.transparent,
+                          ],
+                          stops: const [0.0, 0.5, 1.0],
                         ),
                       ),
                     ),
                   ),
-                ),
-                onSelected: (value) async {
-                  switch (value) {
-                    case 'profile':
-                      // TODO: Navigate to profile
-                      break;
-                    case 'settings':
-                      // TODO: Navigate to settings
-                      break;
-                    case 'logout':
-                      await authProvider.signOut();
-                      if (context.mounted) {
-                        Navigator.pushReplacementNamed(
-                          context,
-                          AppConstants.loginRoute,
-                        );
-                      }
-                      break;
-                  }
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'profile',
-                    child: Row(
-                      children: [
-                        Icon(Icons.person_outline),
-                        SizedBox(width: 8),
-                        Text('Perfil'),
-                      ],
+                  // Animated Deep blue accent - Top Center (MUITO VISÍVEL)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          center: Alignment(
+                            -0.4 + (0.8 * _backgroundAnimation.value),
+                            -0.3 + (0.6 * _backgroundAnimation.value),
+                          ),
+                          radius: 1.5,
+                          colors: [
+                            const Color(0xFF3B82F6).withOpacity(0.45), // Blue MUITO vibrante
+                            const Color(0xFF2563EB).withOpacity(0.28),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                  const PopupMenuItem(
-                    value: 'settings',
-                    child: Row(
-                      children: [
-                        Icon(Icons.settings_outlined),
-                        SizedBox(width: 8),
-                        Text('Configurações'),
-                      ],
+                  // Animated Violet glow - Bottom Left (MUITO VISÍVEL)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          center: Alignment(
+                            -0.5 - (0.8 * _backgroundAnimation.value),
+                            0.3 + (0.8 * _backgroundAnimation.value),
+                          ),
+                          radius: 1.4,
+                          colors: [
+                            const Color(0xFF9333EA).withOpacity(0.48), // Violet SUPER visível
+                            const Color(0xFF7C3AED).withOpacity(0.32), // Purple intermediário
+                            Colors.transparent,
+                          ],
+                          stops: const [0.0, 0.5, 1.0],
+                        ),
+                      ),
                     ),
                   ),
-                  const PopupMenuDivider(),
-                  const PopupMenuItem(
-                    value: 'logout',
-                    child: Row(
-                      children: [
-                        Icon(Icons.logout),
-                        SizedBox(width: 8),
-                        Text('Sair'),
-                      ],
+                  // Animated Pink-purple accent - Center Right (MUITO VISÍVEL)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          center: Alignment(
+                            0.2 + (0.9 * _backgroundAnimation.value),
+                            -0.4 + (0.8 * _backgroundAnimation.value),
+                          ),
+                          radius: 1.6,
+                          colors: [
+                            const Color(0xFFD946EF).withOpacity(0.42), // Magenta MUITO visível
+                            const Color(0xFFA855F7).withOpacity(0.28), // Purple-pink
+                            Colors.transparent,
+                          ],
+                          stops: const [0.0, 0.6, 1.0],
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Animated additional deep blue - Bottom Right (MUITO VISÍVEL)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          center: Alignment(
+                            0.6 - (0.7 * _backgroundAnimation.value),
+                            0.4 - (0.7 * _backgroundAnimation.value),
+                          ),
+                          radius: 1.3,
+                          colors: [
+                            const Color(0xFF3B82F6).withOpacity(0.46), // Blue royal MUITO visível
+                            const Color(0xFF2563EB).withOpacity(0.30),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ],
               );
             },
           ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          // Gradient Background
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF1a1a2e),
-                  Color(0xFF16213e),
-                  Color(0xFF0f3460),
-                ],
-                stops: [0.0, 0.5, 1.0],
-              ),
-            ),
-          ),
-
-          // Content
+          // Content Layer (not affected by animation rebuilds)
           SafeArea(
             child: Consumer<AppAuthProvider>(
               builder: (context, authProvider, _) {
@@ -252,9 +387,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             const SizedBox(height: 20),
 
                             // Greeting Section
-                            _buildGreetingSection(context, greeting, authProvider),
+                            // _buildGreetingSection(context, greeting, authProvider),
 
-                            const SizedBox(height: 32),
+                            // const SizedBox(height: 32),
 
                             // Capital Card
                             _buildCapitalCard(context),
@@ -358,118 +493,110 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               child: InkWell(
                 onTap: () => Navigator.pushNamed(context, '/transactions'),
                 borderRadius: BorderRadius.circular(24),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24),
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFF5A67D8),
-                        Color(0xFF6B46C1),
-                      ],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF5A67D8).withOpacity(0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.white.withOpacity(0.15),
+                            Colors.white.withOpacity(0.05),
+                          ],
+                        ),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Reserva de Capital',
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Reserva de Capital',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.1),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.2),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.history,
+                                    color: Colors.white.withOpacity(0.7),
+                                    size: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              currencyFormat.format(balance),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 40,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: -1,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              balance >= 0 ? 'Saldo disponível' : 'Saldo negativo',
                               style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
+                                color: Colors.white.withOpacity(0.7),
+                                fontSize: 16,
                               ),
                             ),
-                            Icon(
-                              Icons.history,
-                              color: Colors.white.withOpacity(0.7),
-                              size: 20,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          currencyFormat.format(balance),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 40,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: -1,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          balance >= 0 ? 'Saldo disponível' : 'Saldo negativo',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.7),
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
+                            const SizedBox(height: 24),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildMiniStat(
                                     'Receitas',
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.7),
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
                                     currencyFormat.format(totalIncome),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    Icons.trending_up,
+                                    Colors.green,
                                   ),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildMiniStat(
                                     'Despesas',
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.7),
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
                                     currencyFormat.format(totalExpense),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    Icons.trending_down,
+                                    Colors.red,
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -478,6 +605,53 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           },
         );
       },
+    );
+  }
+
+  Widget _buildMiniStat(String label, String value, IconData icon, Color color) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: color.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, color: color, size: 16),
+                  const SizedBox(width: 6),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.7),
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                value,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -497,114 +671,135 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               child: InkWell(
                 onTap: () => Navigator.pushNamed(context, '/goals'),
                 borderRadius: BorderRadius.circular(24),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24),
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFF3B82F6),
-                        Color(0xFF06B6D4),
-                      ],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF3B82F6).withOpacity(0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.white.withOpacity(0.15),
+                            Colors.white.withOpacity(0.05),
+                          ],
+                        ),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Icon(
-                                  Icons.flag_rounded,
-                                  color: Colors.white,
-                                  size: 20,
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                          color: Colors.white.withOpacity(0.2),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: const Icon(
+                                        Icons.flag_rounded,
+                                        color: Colors.white,
+                                        size: 18,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      hasGoals
+                                          ? '${activeGoals.length} Meta${activeGoals.length != 1 ? 's' : ''} Ativa${activeGoals.length != 1 ? 's' : ''}'
+                                          : 'Nenhuma meta definida',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  hasGoals
-                                      ? '${activeGoals.length} Meta${activeGoals.length != 1 ? 's' : ''} Ativa${activeGoals.length != 1 ? 's' : ''}'
-                                      : 'Nenhuma meta definida',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                Icon(
+                                  Icons.arrow_forward_ios,
+                                  color: Colors.white.withOpacity(0.5),
+                                  size: 16,
                                 ),
                               ],
                             ),
-                            Icon(
-                              Icons.arrow_forward_ios,
-                              color: Colors.white.withOpacity(0.7),
-                              size: 16,
-                            ),
-                          ],
-                        ),
-                        if (hasGoals) ...[
-                          const SizedBox(height: 20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Progresso Geral',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.7),
-                                  fontSize: 12,
+                            if (hasGoals) ...[
+                              const SizedBox(height: 20),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Progresso Geral',
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.7),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  Text(
+                                    homeProvider.totalTasksForActiveGoals > 0
+                                        ? '${homeProvider.completedTasksForActiveGoals}/${homeProvider.totalTasksForActiveGoals} tarefas'
+                                        : 'Sem tarefas',
+                                    style: TextStyle(
+                                      color: Colors.white.withOpacity(0.9),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: TweenAnimationBuilder<double>(
+                                  tween: Tween(begin: 0.0, end: homeProvider.activeGoalsTaskProgress),
+                                  duration: const Duration(milliseconds: 1500),
+                                  curve: Curves.easeOutCubic,
+                                  builder: (context, animValue, child) {
+                                    return LinearProgressIndicator(
+                                      value: animValue,
+                                      minHeight: 6,
+                                      backgroundColor: Colors.white.withOpacity(0.1),
+                                      valueColor: const AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
+                            ] else ...[
+                              const SizedBox(height: 12),
                               Text(
-                                homeProvider.totalTasksForActiveGoals > 0
-                                    ? '${homeProvider.completedTasksForActiveGoals}/${homeProvider.totalTasksForActiveGoals} tarefas'
-                                    : 'Sem tarefas',
+                                'Crie sua primeira meta',
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.9),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white.withOpacity(0.7),
+                                  fontSize: 14,
                                 ),
                               ),
                             ],
-                          ),
-                          const SizedBox(height: 8),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: TweenAnimationBuilder<double>(
-                              tween: Tween(begin: 0.0, end: homeProvider.activeGoalsTaskProgress),
-                              duration: const Duration(milliseconds: 1500),
-                              curve: Curves.easeOutCubic,
-                              builder: (context, animValue, child) {
-                                return LinearProgressIndicator(
-                                  value: animValue,
-                                  minHeight: 6,
-                                  backgroundColor: Colors.white.withOpacity(0.2),
-                                  valueColor: const AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ] else ...[
-                          const SizedBox(height: 12),
-                          Text(
-                            'Crie sua primeira meta',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.7),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ],
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -640,36 +835,28 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             _AnimatedQuickActionCard(
               icon: Icons.flag_rounded,
               title: 'Metas',
-              gradient: const LinearGradient(
-                colors: [Color(0xFF3B82F6), Color(0xFF06B6D4)],
-              ),
+              accentColor: const Color(0xFF3B82F6),
               delay: 0,
               onTap: () => Navigator.pushNamed(context, '/goals'),
             ),
             _AnimatedQuickActionCard(
               icon: Icons.add_card_rounded,
               title: 'Nova Transação',
-              gradient: const LinearGradient(
-                colors: [Color(0xFF10B981), Color(0xFF059669)],
-              ),
+              accentColor: const Color(0xFF10B981),
               delay: 100,
               onTap: () => Navigator.pushNamed(context, '/add-transaction'),
             ),
             _AnimatedQuickActionCard(
               icon: Icons.history_rounded,
               title: 'Histórico',
-              gradient: const LinearGradient(
-                colors: [Color(0xFFF59E0B), Color(0xFFEF4444)],
-              ),
+              accentColor: const Color(0xFFF59E0B),
               delay: 200,
               onTap: () => Navigator.pushNamed(context, '/transactions'),
             ),
             _AnimatedQuickActionCard(
               icon: Icons.analytics_rounded,
               title: 'Dashboard',
-              gradient: const LinearGradient(
-                colors: [Color(0xFF8B5CF6), Color(0xFF6B46C1)],
-              ),
+              accentColor: const Color(0xFF8B5CF6),
               delay: 300,
               onTap: () => Navigator.pushNamed(context, AppConstants.dashboardRoute),
             ),
@@ -724,132 +911,152 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         final balance = totalIncome - totalExpense;
         final transactionCount = filteredTransactions.length;
 
-        return Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF2d3561),
-                Color(0xFF1f2544),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 20,
-                offset: const Offset(0, 5),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header with title
-              const Text(
-                'Visão Geral',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Period selector tabs
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _PeriodTab(
-                        label: 'Hoje',
-                        isSelected: _selectedPeriodIndex == 0,
-                        onTap: () {
-                          setState(() {
-                            _selectedPeriodIndex = 0;
-                          });
-                        },
-                      ),
-                    ),
-                    Expanded(
-                      child: _PeriodTab(
-                        label: 'Semana',
-                        isSelected: _selectedPeriodIndex == 1,
-                        onTap: () {
-                          setState(() {
-                            _selectedPeriodIndex = 1;
-                          });
-                        },
-                      ),
-                    ),
-                    Expanded(
-                      child: _PeriodTab(
-                        label: 'Mês',
-                        isSelected: _selectedPeriodIndex == 2,
-                        onTap: () {
-                          setState(() {
-                            _selectedPeriodIndex = 2;
-                          });
-                        },
-                      ),
-                    ),
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withOpacity(0.1),
+                    Colors.white.withOpacity(0.05),
                   ],
                 ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
               ),
-              const SizedBox(height: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header with title
+                  const Text(
+                    'Visão Geral',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
 
-              // Stats
-              Row(
-                children: [
-                  Expanded(
-                    child: _StatItem(
-                      icon: Icons.trending_up,
-                      label: 'Receitas',
-                      value: currencyFormat.format(totalIncome),
-                      color: Colors.green,
+                  // Period selector tabs
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.1),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _PeriodTab(
+                                label: 'Hoje',
+                                isSelected: _selectedPeriodIndex == 0,
+                                onTap: () {
+                                  setState(() {
+                                    _selectedPeriodIndex = 0;
+                                  });
+                                },
+                              ),
+                            ),
+                            Expanded(
+                              child: _PeriodTab(
+                                label: 'Semana',
+                                isSelected: _selectedPeriodIndex == 1,
+                                onTap: () {
+                                  setState(() {
+                                    _selectedPeriodIndex = 1;
+                                  });
+                                },
+                              ),
+                            ),
+                            Expanded(
+                              child: _PeriodTab(
+                                label: 'Mês',
+                                isSelected: _selectedPeriodIndex == 2,
+                                onTap: () {
+                                  setState(() {
+                                    _selectedPeriodIndex = 2;
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _StatItem(
-                      icon: Icons.trending_down,
-                      label: 'Despesas',
-                      value: currencyFormat.format(totalExpense),
-                      color: Colors.red,
-                    ),
+                  const SizedBox(height: 24),
+
+                  // Stats
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _StatItem(
+                          icon: Icons.trending_up,
+                          label: 'Receitas',
+                          value: currencyFormat.format(totalIncome),
+                          color: Colors.green,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _StatItem(
+                          icon: Icons.trending_down,
+                          label: 'Despesas',
+                          value: currencyFormat.format(totalExpense),
+                          color: Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _StatItem(
+                          icon: Icons.account_balance_wallet,
+                          label: 'Saldo',
+                          value: currencyFormat.format(balance),
+                          color: balance >= 0 ? Colors.blue : Colors.orange,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _StatItem(
+                          icon: Icons.receipt_long,
+                          label: 'Transações',
+                          value: transactionCount.toString(),
+                          color: Colors.purple,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: _StatItem(
-                      icon: Icons.account_balance_wallet,
-                      label: 'Saldo',
-                      value: currencyFormat.format(balance),
-                      color: balance >= 0 ? Colors.blue : Colors.orange,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _StatItem(
-                      icon: Icons.receipt_long,
-                      label: 'Transações',
-                      value: transactionCount.toString(),
-                      color: Colors.purple,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            ),
           ),
         );
       },
@@ -910,37 +1117,50 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildFloatingActionButton(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF10B981), Color(0xFF059669)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF10B981).withOpacity(0.4),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(30),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                const Color(0xFF10B981).withOpacity(0.8),
+                const Color(0xFF059669).withOpacity(0.8),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF10B981).withOpacity(0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.pushNamed(context, '/add-transaction');
-        },
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        icon: const Icon(
-          Icons.add_rounded,
-          color: Colors.white,
-        ),
-        label: const Text(
-          'Adicionar',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+          child: FloatingActionButton.extended(
+            onPressed: () {
+              Navigator.pushNamed(context, '/add-transaction');
+            },
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            icon: const Icon(
+              Icons.add_rounded,
+              color: Colors.white,
+            ),
+            label: const Text(
+              'Adicionar',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
           ),
         ),
       ),
@@ -1188,14 +1408,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 class _AnimatedQuickActionCard extends StatefulWidget {
   final IconData icon;
   final String title;
-  final Gradient gradient;
+  final Color accentColor;
   final VoidCallback onTap;
   final int delay;
 
   const _AnimatedQuickActionCard({
     required this.icon,
     required this.title,
-    required this.gradient,
+    required this.accentColor,
     required this.onTap,
     required this.delay,
   });
@@ -1262,41 +1482,66 @@ class _AnimatedQuickActionCardState extends State<_AnimatedQuickActionCard>
                   _controller.reverse();
                   setState(() => _isPressed = false);
                 },
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: widget.gradient,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: widget.gradient.colors.first.withOpacity(0.3),
-                        blurRadius: _isPressed ? 10 : 15,
-                        offset: Offset(0, _isPressed ? 3 : 8),
-                      ),
-                    ],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            widget.icon,
-                            color: Colors.white,
-                            size: 36,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            widget.title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.white.withOpacity(0.15),
+                            Colors.white.withOpacity(0.05),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: widget.accentColor.withOpacity(0.3),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: widget.accentColor.withOpacity(_isPressed ? 0.2 : 0.3),
+                            blurRadius: _isPressed ? 10 : 15,
+                            offset: Offset(0, _isPressed ? 3 : 8),
                           ),
                         ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: widget.accentColor.withOpacity(0.2),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: widget.accentColor.withOpacity(0.3),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Icon(
+                                widget.icon,
+                                color: Colors.white,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              widget.title,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -1325,39 +1570,45 @@ class _StatItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: color.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: color, size: 24),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.6),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.6),
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1382,16 +1633,13 @@ class _PeriodTab extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white.withOpacity(0.2) : Colors.transparent,
+          color: isSelected ? Colors.white.withOpacity(0.15) : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colors.white.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
+          border: isSelected
+              ? Border.all(
+                  color: Colors.white.withOpacity(0.2),
+                  width: 1,
+                )
               : null,
         ),
         child: Center(
@@ -1408,4 +1656,3 @@ class _PeriodTab extends StatelessWidget {
     );
   }
 }
-
