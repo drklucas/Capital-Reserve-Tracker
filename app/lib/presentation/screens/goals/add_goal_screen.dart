@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../domain/entities/goal_entity.dart';
 import '../../../core/constants/goal_colors.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../../providers/goal_provider.dart';
 import '../../providers/auth_provider.dart';
 
@@ -207,9 +208,14 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
         elevation: 0,
         title: Text(
           isEditing ? 'Editar Meta' : 'Nova Meta',
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 24,
+            fontSize: ResponsiveUtils.responsiveFontSize(
+              context,
+              mobile: 22,
+              tablet: 24,
+              desktop: 26,
+            ),
             color: Colors.white,
           ),
         ),
@@ -231,16 +237,16 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
         child: SafeArea(
           child: Form(
             key: _formKey,
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                const SizedBox(height: 8),
+            child: ResponsiveLayout(
+              child: ListView(
+                children: [
+                  SizedBox(height: ResponsiveUtils.getSpacing(context)),
 
-                // Basic Info Card
-                _buildCardSection(
-                  title: 'Informações Básicas',
-                  icon: Icons.flag_rounded,
-                  children: [
+                  // Basic Info Card
+                  _buildCardSection(
+                    title: 'Informações Básicas',
+                    icon: Icons.flag_rounded,
+                    children: [
                     _buildTextField(
                       controller: _titleController,
                       label: 'Título da Meta',
@@ -249,7 +255,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                       validator: _validateTitle,
                       maxLength: 100,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2)),
                     _buildTextField(
                       controller: _descriptionController,
                       label: 'Descrição',
@@ -262,7 +268,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                   ],
                 ),
 
-                const SizedBox(height: 20),
+                SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2.5)),
 
                 // Dates Card
                 _buildCardSection(
@@ -279,7 +285,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                             onTap: () => _selectDate(context, true),
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        SizedBox(width: ResponsiveUtils.getSpacing(context, multiplier: 2)),
                         Expanded(
                           child: _buildDateField(
                             label: 'Data Alvo',
@@ -290,12 +296,12 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 1.5)),
                     _buildDurationInfo(),
                   ],
                 ),
 
-                const SizedBox(height: 20),
+                SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2.5)),
 
                 // Color Picker Card
                 _buildCardSection(
@@ -306,13 +312,14 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                   ],
                 ),
 
-                const SizedBox(height: 32),
+                SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 4)),
 
                 // Save Button
                 _buildSaveButton(isEditing),
 
-                const SizedBox(height: 20),
+                SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2.5)),
               ],
+              ),
             ),
           ),
         ),
@@ -326,7 +333,7 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
     required List<Widget> children,
   }) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: ResponsiveUtils.getCardPadding(context),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -336,7 +343,9 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
             Color(0xFF1f2544),
           ],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(
+          ResponsiveUtils.getBorderRadius(context),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
@@ -358,18 +367,23 @@ class _AddGoalScreenState extends State<AddGoalScreen> {
                 ),
                 child: Icon(icon, color: const Color(0xFF5A67D8), size: 20),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: ResponsiveUtils.getSpacing(context, multiplier: 1.5)),
               Text(
                 title,
-                style: const TextStyle(
-                  fontSize: 18,
+                style: TextStyle(
+                  fontSize: ResponsiveUtils.responsiveFontSize(
+                    context,
+                    mobile: 16,
+                    tablet: 18,
+                    desktop: 20,
+                  ),
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2.5)),
           ...children,
         ],
       ),
