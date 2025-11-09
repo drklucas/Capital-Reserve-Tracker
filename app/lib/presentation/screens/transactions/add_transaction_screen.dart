@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../domain/entities/transaction_entity.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/responsive/max_width_container.dart';
 
 /// Screen for adding or editing a transaction
 class AddTransactionScreen extends StatefulWidget {
@@ -54,9 +56,14 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         elevation: 0,
         title: Text(
           widget.transaction == null ? 'Nova Transação' : 'Editar Transação',
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 24,
+            fontSize: ResponsiveUtils.responsiveFontSize(
+              context,
+              mobile: 22,
+              tablet: 24,
+              desktop: 26,
+            ),
             color: Colors.white,
           ),
         ),
@@ -78,89 +85,139 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 8),
-
-                  // Type selector card
-                  _buildCardSection(
-                    title: 'Tipo de Transação',
-                    icon: Icons.swap_vert_rounded,
-                    children: [
-                      _buildTypeSelector(),
-                    ],
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Transaction details card
-                  _buildCardSection(
-                    title: 'Detalhes',
-                    icon: Icons.description_rounded,
-                    children: [
-                      _buildTextField(
-                        controller: _descriptionController,
-                        label: 'Descrição',
-                        hint: 'Ex: Supermercado, Salário...',
-                        icon: Icons.title,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'A descrição é obrigatória';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        controller: _amountController,
-                        label: 'Valor',
-                        hint: '0,00',
-                        icon: Icons.attach_money,
-                        prefix: 'R\$ ',
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
-                        ],
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'O valor é obrigatório';
-                          }
-                          final amount = double.tryParse(value.replaceAll(',', '.'));
-                          if (amount == null || amount <= 0) {
-                            return 'Digite um valor válido maior que zero';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      _buildCategoryDropdown(),
-                      const SizedBox(height: 16),
-                      _buildDateField(),
-                    ],
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Save button
-                  Consumer<TransactionProvider>(
-                    builder: (context, provider, _) {
-                      if (provider.status == TransactionStatus.creating ||
-                          provider.status == TransactionStatus.updating) {
-                        return const Center(child: LoadingIndicator());
-                      }
-
-                      return _buildSaveButton();
-                    },
-                  ),
-
-                  const SizedBox(height: 20),
-                ],
+          child: MaxWidthContainer(
+            child: ListView(
+              padding: EdgeInsets.all(
+                ResponsiveUtils.valueByScreen(
+                  context: context,
+                  mobile: 16.0,
+                  tablet: 20.0,
+                  desktop: 24.0,
+                ),
               ),
+              children: [
+                SizedBox(
+                  height: ResponsiveUtils.valueByScreen(
+                    context: context,
+                    mobile: 8.0,
+                    tablet: 12.0,
+                    desktop: 16.0,
+                  ),
+                ),
+
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Type selector card
+                      _buildCardSection(
+                        context,
+                        title: 'Tipo de Transação',
+                        icon: Icons.swap_vert_rounded,
+                        children: [
+                          _buildTypeSelector(),
+                        ],
+                      ),
+
+                      SizedBox(
+                        height: ResponsiveUtils.getSpacing(
+                          context,
+                          multiplier: 2.5,
+                        ),
+                      ),
+
+                      // Transaction details card
+                      _buildCardSection(
+                        context,
+                        title: 'Detalhes',
+                        icon: Icons.description_rounded,
+                        children: [
+                          _buildTextField(
+                            controller: _descriptionController,
+                            label: 'Descrição',
+                            hint: 'Ex: Supermercado, Salário...',
+                            icon: Icons.title,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'A descrição é obrigatória';
+                              }
+                              return null;
+                            },
+                          ),
+                          SizedBox(
+                            height: ResponsiveUtils.getSpacing(
+                              context,
+                              multiplier: 2,
+                            ),
+                          ),
+                          _buildTextField(
+                            controller: _amountController,
+                            label: 'Valor',
+                            hint: '0,00',
+                            icon: Icons.attach_money,
+                            prefix: 'R\$ ',
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                            ],
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'O valor é obrigatório';
+                              }
+                              final amount = double.tryParse(value.replaceAll(',', '.'));
+                              if (amount == null || amount <= 0) {
+                                return 'Digite um valor válido maior que zero';
+                              }
+                              return null;
+                            },
+                          ),
+                          SizedBox(
+                            height: ResponsiveUtils.getSpacing(
+                              context,
+                              multiplier: 2,
+                            ),
+                          ),
+                          _buildCategoryDropdown(),
+                          SizedBox(
+                            height: ResponsiveUtils.getSpacing(
+                              context,
+                              multiplier: 2,
+                            ),
+                          ),
+                          _buildDateField(),
+                        ],
+                      ),
+
+                      SizedBox(
+                        height: ResponsiveUtils.getSpacing(
+                          context,
+                          multiplier: 4,
+                        ),
+                      ),
+
+                      // Save button
+                      Consumer<TransactionProvider>(
+                        builder: (context, provider, _) {
+                          if (provider.status == TransactionStatus.creating ||
+                              provider.status == TransactionStatus.updating) {
+                            return const Center(child: LoadingIndicator());
+                          }
+
+                          return _buildSaveButton();
+                        },
+                      ),
+
+                      SizedBox(
+                        height: ResponsiveUtils.getSpacing(
+                          context,
+                          multiplier: 2.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -168,13 +225,23 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     );
   }
 
-  Widget _buildCardSection({
+  Widget _buildCardSection(
+    BuildContext context, {
     required String title,
     required IconData icon,
     required List<Widget> children,
   }) {
+    final padding = ResponsiveUtils.getCardPadding(context);
+    final borderRadius = ResponsiveUtils.getBorderRadius(context);
+    final titleFontSize = ResponsiveUtils.responsiveFontSize(
+      context,
+      mobile: 16.0,
+      tablet: 18.0,
+      desktop: 20.0,
+    );
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: padding,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -184,7 +251,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             Color(0xFF1f2544),
           ],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
@@ -206,18 +273,20 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 ),
                 child: Icon(icon, color: const Color(0xFF5A67D8), size: 20),
               ),
-              const SizedBox(width: 12),
+              SizedBox(
+                width: ResponsiveUtils.getSpacing(context, multiplier: 1.5),
+              ),
               Text(
                 title,
-                style: const TextStyle(
-                  fontSize: 18,
+                style: TextStyle(
+                  fontSize: titleFontSize,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2.5)),
           ...children,
         ],
       ),
@@ -225,114 +294,132 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   Widget _buildTypeSelector() {
-    return Row(
-      children: [
-        Expanded(
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                _type = TransactionType.income;
-                _category = TransactionCategory.salary;
-              });
-            },
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: _type == TransactionType.income
-                    ? const LinearGradient(
-                        colors: [Color(0xFF10B981), Color(0xFF059669)],
-                      )
-                    : null,
-                color: _type != TransactionType.income
-                    ? Colors.white.withOpacity(0.1)
-                    : null,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: _type == TransactionType.income
-                      ? Colors.green
-                      : Colors.white.withOpacity(0.2),
-                  width: _type == TransactionType.income ? 2 : 1,
-                ),
-              ),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.arrow_upward,
-                    color: _type == TransactionType.income
-                        ? Colors.white
-                        : Colors.green,
-                    size: 28,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Receita',
-                    style: TextStyle(
+    return Builder(
+      builder: (context) {
+        final spacing = ResponsiveUtils.getSpacing(context, multiplier: 2);
+        final iconSize = ResponsiveUtils.valueByScreen(
+          context: context,
+          mobile: 28.0,
+          tablet: 32.0,
+          desktop: 36.0,
+        );
+        final fontSize = ResponsiveUtils.responsiveFontSize(
+          context,
+          mobile: 14.0,
+          tablet: 16.0,
+          desktop: 18.0,
+        );
+
+        return Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _type = TransactionType.income;
+                    _category = TransactionCategory.salary;
+                  });
+                },
+                child: Container(
+                  padding: EdgeInsets.all(spacing),
+                  decoration: BoxDecoration(
+                    gradient: _type == TransactionType.income
+                        ? const LinearGradient(
+                            colors: [Color(0xFF10B981), Color(0xFF059669)],
+                          )
+                        : null,
+                    color: _type != TransactionType.income
+                        ? Colors.white.withOpacity(0.1)
+                        : null,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
                       color: _type == TransactionType.income
-                          ? Colors.white
-                          : Colors.white.withOpacity(0.7),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                          ? Colors.green
+                          : Colors.white.withOpacity(0.2),
+                      width: _type == TransactionType.income ? 2 : 1,
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                _type = TransactionType.expense;
-                _category = TransactionCategory.food;
-              });
-            },
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: _type == TransactionType.expense
-                    ? const LinearGradient(
-                        colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
-                      )
-                    : null,
-                color: _type != TransactionType.expense
-                    ? Colors.white.withOpacity(0.1)
-                    : null,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: _type == TransactionType.expense
-                      ? Colors.red
-                      : Colors.white.withOpacity(0.2),
-                  width: _type == TransactionType.expense ? 2 : 1,
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.arrow_upward,
+                        color: _type == TransactionType.income
+                            ? Colors.white
+                            : Colors.green,
+                        size: iconSize,
+                      ),
+                      SizedBox(height: spacing * 0.5),
+                      Text(
+                        'Receita',
+                        style: TextStyle(
+                          color: _type == TransactionType.income
+                              ? Colors.white
+                              : Colors.white.withOpacity(0.7),
+                          fontWeight: FontWeight.bold,
+                          fontSize: fontSize,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.arrow_downward,
-                    color: _type == TransactionType.expense
-                        ? Colors.white
-                        : Colors.red,
-                    size: 28,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Despesa',
-                    style: TextStyle(
+            ),
+            SizedBox(width: spacing),
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _type = TransactionType.expense;
+                    _category = TransactionCategory.food;
+                  });
+                },
+                child: Container(
+                  padding: EdgeInsets.all(spacing),
+                  decoration: BoxDecoration(
+                    gradient: _type == TransactionType.expense
+                        ? const LinearGradient(
+                            colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+                          )
+                        : null,
+                    color: _type != TransactionType.expense
+                        ? Colors.white.withOpacity(0.1)
+                        : null,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
                       color: _type == TransactionType.expense
-                          ? Colors.white
-                          : Colors.white.withOpacity(0.7),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                          ? Colors.red
+                          : Colors.white.withOpacity(0.2),
+                      width: _type == TransactionType.expense ? 2 : 1,
                     ),
                   ),
-                ],
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.arrow_downward,
+                        color: _type == TransactionType.expense
+                            ? Colors.white
+                            : Colors.red,
+                        size: iconSize,
+                      ),
+                      SizedBox(height: spacing * 0.5),
+                      Text(
+                        'Despesa',
+                        style: TextStyle(
+                          color: _type == TransactionType.expense
+                              ? Colors.white
+                              : Colors.white.withOpacity(0.7),
+                          fontWeight: FontWeight.bold,
+                          fontSize: fontSize,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 
@@ -469,51 +556,80 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   Widget _buildSaveButton() {
-    return Container(
-      height: 56,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF10B981),
-            Color(0xFF059669),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF10B981).withOpacity(0.4),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+    return Builder(
+      builder: (context) {
+        final buttonHeight = ResponsiveUtils.valueByScreen(
+          context: context,
+          mobile: 52.0,
+          tablet: 56.0,
+          desktop: 60.0,
+        );
+        final borderRadius = ResponsiveUtils.valueByScreen(
+          context: context,
+          mobile: 14.0,
+          tablet: 16.0,
+          desktop: 18.0,
+        );
+        final fontSize = ResponsiveUtils.responsiveFontSize(
+          context,
+          mobile: 16.0,
+          tablet: 18.0,
+          desktop: 20.0,
+        );
+        final iconSize = ResponsiveUtils.valueByScreen(
+          context: context,
+          mobile: 22.0,
+          tablet: 24.0,
+          desktop: 26.0,
+        );
+
+        return Container(
+          height: buttonHeight,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF10B981),
+                Color(0xFF059669),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(borderRadius),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF10B981).withOpacity(0.4),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: ElevatedButton(
-        onPressed: _saveTransaction,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.save_rounded, size: 24, color: Colors.white),
-            const SizedBox(width: 8),
-            Text(
-              widget.transaction == null ? 'Salvar Transação' : 'Atualizar Transação',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+          child: ElevatedButton(
+            onPressed: _saveTransaction,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(borderRadius),
               ),
             ),
-          ],
-        ),
-      ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.save_rounded, size: iconSize, color: Colors.white),
+                SizedBox(width: ResponsiveUtils.getSpacing(context)),
+                Text(
+                  widget.transaction == null ? 'Salvar Transação' : 'Atualizar Transação',
+                  style: TextStyle(
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
