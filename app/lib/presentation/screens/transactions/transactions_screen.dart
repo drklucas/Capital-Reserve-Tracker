@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../../../domain/entities/transaction_entity.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/transaction_provider.dart';
@@ -47,11 +48,16 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Transações',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 24,
+            fontSize: ResponsiveUtils.responsiveFontSize(
+              context,
+              mobile: 22,
+              tablet: 24,
+              desktop: 26,
+            ),
             color: Colors.white,
           ),
         ),
@@ -234,10 +240,10 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         return dateB.compareTo(dateA);
       });
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: sortedKeys.length,
-      itemBuilder: (context, index) {
+    return ResponsiveLayout(
+      child: ListView.builder(
+        itemCount: sortedKeys.length,
+        itemBuilder: (context, index) {
         final dateKey = sortedKeys[index];
         final transactionsForDate = groupedTransactions[dateKey]!;
 
@@ -246,14 +252,23 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           children: [
             // Label da data
             Padding(
-              padding: EdgeInsets.only(left: 4, bottom: 12, top: index == 0 ? 0 : 8),
+              padding: EdgeInsets.only(
+                left: 4,
+                bottom: ResponsiveUtils.getSpacing(context, multiplier: 1.5),
+                top: index == 0 ? 0 : ResponsiveUtils.getSpacing(context),
+              ),
               child: Text(
                 _formatDateLabel(dateKey),
                 style: TextStyle(
                   color: _formatDateLabel(dateKey) == 'Hoje'
                       ? Colors.white
                       : Colors.white.withOpacity(0.7),
-                  fontSize: 14,
+                  fontSize: ResponsiveUtils.responsiveFontSize(
+                    context,
+                    mobile: 13,
+                    tablet: 14,
+                    desktop: 15,
+                  ),
                   fontWeight: _formatDateLabel(dateKey) == 'Hoje'
                       ? FontWeight.bold
                       : FontWeight.w600,
@@ -268,7 +283,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             )),
           ],
         );
-      },
+        },
+      ),
     );
   }
 
@@ -305,8 +321,11 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     return Consumer<TransactionProvider>(
       builder: (context, provider, _) {
         return Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          padding: const EdgeInsets.all(20),
+          margin: EdgeInsets.symmetric(
+            horizontal: ResponsiveUtils.getSpacing(context, multiplier: 2),
+            vertical: ResponsiveUtils.getSpacing(context),
+          ),
+          padding: ResponsiveUtils.getCardPadding(context),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
@@ -316,7 +335,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 Color(0xFF1f2544),
               ],
             ),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(
+              ResponsiveUtils.getBorderRadius(context),
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.2),
@@ -371,22 +392,41 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   ) {
     return Column(
       children: [
-        Icon(icon, color: color, size: 20),
-        const SizedBox(height: 8),
+        Icon(
+          icon,
+          color: color,
+          size: ResponsiveUtils.valueByScreen(
+            context: context,
+            mobile: 18,
+            tablet: 20,
+            desktop: 22,
+          ),
+        ),
+        SizedBox(height: ResponsiveUtils.getSpacing(context)),
         Text(
           label,
           style: TextStyle(
             color: Colors.white.withOpacity(0.7),
-            fontSize: 12,
+            fontSize: ResponsiveUtils.responsiveFontSize(
+              context,
+              mobile: 11,
+              tablet: 12,
+              desktop: 13,
+            ),
           ),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 0.5)),
         Text(
           'R\$ ${value.toStringAsFixed(2)}',
           style: TextStyle(
             color: color,
             fontWeight: FontWeight.bold,
-            fontSize: 16,
+            fontSize: ResponsiveUtils.responsiveFontSize(
+              context,
+              mobile: 14,
+              tablet: 16,
+              desktop: 18,
+            ),
           ),
         ),
       ],
