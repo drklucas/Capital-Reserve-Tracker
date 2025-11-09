@@ -6,6 +6,11 @@ import '../../providers/dashboard_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../goals/goal_detail_screen.dart';
+import '../../widgets/charts/category_spending_chart.dart';
+import '../../widgets/charts/hourly_spending_chart.dart';
+import '../../widgets/charts/daily_spending_pattern_chart.dart';
+import '../../widgets/charts/value_range_chart.dart';
+import '../../../core/utils/responsive_utils.dart';
 
 /// Period filter for reserve evolution chart
 enum ReservePeriod {
@@ -82,6 +87,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   ReservePeriod _selectedPeriod = ReservePeriod.lastMonths;
   IncomeExpensesPeriod _selectedIncomeExpensesPeriod = IncomeExpensesPeriod.lastMonths;
+  bool _isInitialized = false;
 
   @override
   void initState() {
@@ -214,10 +220,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: SafeArea(
           child: Consumer2<DashboardProvider, TransactionProvider>(
             builder: (context, dashboardProvider, transactionProvider, _) {
-              // Update transactions whenever TransactionProvider changes
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                dashboardProvider.updateTransactions(transactionProvider.transactions);
-              });
+              // Initialize transactions only once
+              if (!_isInitialized) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    setState(() {
+                      _isInitialized = true;
+                    });
+                    dashboardProvider.updateTransactions(transactionProvider.transactions);
+                  }
+                });
+              }
 
               final summary = dashboardProvider.summary;
 
@@ -227,15 +240,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 },
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 8),
+                  child: ResponsiveLayout(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: ResponsiveUtils.getSpacing(context)),
 
-                      // Summary Cards (2x2 Grid)
-                      _buildSummaryCards(summary),
-                      const SizedBox(height: 32),
+                        // Summary Cards (Responsive Grid)
+                        _buildSummaryCards(summary, context),
+                        SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 3)),
 
                       // Reserve Evolution Chart
                       _buildSectionTitleWithFilter(
@@ -249,38 +262,75 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           }
                         },
                       ),
-                      const SizedBox(height: 16),
-                      _buildReserveEvolutionChart(dashboardProvider),
-                      const SizedBox(height: 32),
+                        SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2)),
+                        RepaintBoundary(
+                          child: _buildReserveEvolutionChart(dashboardProvider, context),
+                        ),
+                        SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 3)),
 
-                      // Income vs Expenses Chart
-                      _buildSectionTitleWithIncomeExpensesFilter(
-                        'Receitas vs Despesas',
-                        _selectedIncomeExpensesPeriod,
-                        (IncomeExpensesPeriod? newPeriod) {
-                          if (newPeriod != null) {
-                            setState(() {
-                              _selectedIncomeExpensesPeriod = newPeriod;
-                            });
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      _buildIncomeExpensesChart(dashboardProvider),
-                      const SizedBox(height: 32),
+                        // Income vs Expenses Chart
+                        _buildSectionTitleWithIncomeExpensesFilter(
+                          'Receitas vs Despesas',
+                          _selectedIncomeExpensesPeriod,
+                          (IncomeExpensesPeriod? newPeriod) {
+                            if (newPeriod != null) {
+                              setState(() {
+                                _selectedIncomeExpensesPeriod = newPeriod;
+                              });
+                            }
+                          },
+                        ),
+                        SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2)),
+                        RepaintBoundary(
+                          child: _buildIncomeExpensesChart(dashboardProvider, context),
+                        ),
+                        SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 3)),
 
-                      // Goals Progress
-                      _buildSectionTitle('Progresso das Metas'),
-                      const SizedBox(height: 16),
-                      _buildGoalsProgress(dashboardProvider),
-                      const SizedBox(height: 32),
+                        // Goals Progress
+                        _buildSectionTitle('Progresso das Metas', context),
+                        SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2)),
+                        RepaintBoundary(
+                          child: _buildGoalsProgress(dashboardProvider),
+                        ),
+                        SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 3)),
 
-                      // Insights
-                      _buildSectionTitle('Insights'),
-                      const SizedBox(height: 16),
-                      _buildInsights(dashboardProvider),
-                      const SizedBox(height: 24),
-                    ],
+                        // Insights
+                        _buildSectionTitle('Insights', context),
+                        SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2)),
+                        RepaintBoundary(
+                          child: _buildInsights(dashboardProvider),
+                        ),
+                        SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 3)),
+
+                        // Spending Analysis Section
+                        _buildSectionTitle('Análise de Gastos', context),
+                        SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2)),
+
+                        // Category Spending Chart
+                        RepaintBoundary(
+                          child: _buildCategorySpendingChart(dashboardProvider),
+                        ),
+                        SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2)),
+
+                        // Hourly Spending Chart
+                        RepaintBoundary(
+                          child: _buildHourlySpendingChart(dashboardProvider),
+                        ),
+                        SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2)),
+
+                        // Daily Pattern Chart
+                        RepaintBoundary(
+                          child: _buildDailyPatternChart(dashboardProvider),
+                        ),
+                        SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2)),
+
+                        // Value Range Chart
+                        RepaintBoundary(
+                          child: _buildValueRangeChart(dashboardProvider),
+                        ),
+                        SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2)),
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -291,13 +341,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 4),
+      padding: EdgeInsets.only(left: ResponsiveUtils.getSpacing(context, multiplier: 0.5)),
       child: Text(
         title,
-        style: const TextStyle(
-          fontSize: 22,
+        style: TextStyle(
+          fontSize: ResponsiveUtils.responsiveFontSize(
+            context,
+            mobile: 20,
+            tablet: 22,
+            desktop: 24,
+          ),
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),
@@ -445,32 +500,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildSummaryCards(DashboardSummary summary) {
+  Widget _buildSummaryCards(DashboardSummary summary, BuildContext context) {
+    final columns = ResponsiveUtils.valueByScreen(
+      context: context,
+      mobile: 2,
+      tablet: 2,
+      desktop: 4,
+    );
+
     return GridView.count(
-      crossAxisCount: 2,
+      crossAxisCount: columns,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 1.3,
+      crossAxisSpacing: ResponsiveUtils.getSpacing(context, multiplier: 1.5),
+      mainAxisSpacing: ResponsiveUtils.getSpacing(context, multiplier: 1.5),
+      childAspectRatio: ResponsiveUtils.valueByScreen(
+        context: context,
+        mobile: 1.3,
+        tablet: 1.2,
+        desktop: 1.1,
+      ),
       children: [
         _buildSummaryCard(
           title: 'Reserva Total',
           value: _currencyFormat.format(summary.totalReserve),
           icon: Icons.account_balance_wallet,
           color: const Color(0xFF5A67D8),
+          context: context,
         ),
         _buildSummaryCard(
           title: 'Meta Total',
           value: _currencyFormat.format(summary.totalGoalAmount),
           icon: Icons.flag,
           color: const Color(0xFF6B46C1),
+          context: context,
         ),
         _buildSummaryCard(
           title: 'Progresso Geral',
           value: '${summary.progressPercentage.toStringAsFixed(1)}%',
           icon: Icons.trending_up,
           color: const Color(0xFF48BB78),
+          context: context,
         ),
         _buildSummaryCard(
           title: 'Saldo Mensal',
@@ -479,6 +549,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           color: summary.monthlyBalance >= 0
               ? const Color(0xFF48BB78)
               : const Color(0xFFE53E3E),
+          context: context,
         ),
       ],
     );
@@ -489,16 +560,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required String value,
     required IconData icon,
     required Color color,
+    required BuildContext context,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: ResponsiveUtils.getCardPadding(context),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [Color(0xFF2d3561), Color(0xFF1f2544)],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(
+          ResponsiveUtils.getBorderRadius(context),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
@@ -517,11 +591,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: ResponsiveUtils.responsiveFontSize(
+                    context,
+                    mobile: 11,
+                    tablet: 12,
+                    desktop: 13,
+                  ),
                   color: Colors.white.withOpacity(0.7),
                 ),
               ),
-              Icon(icon, color: color, size: 20),
+              Icon(
+                icon,
+                color: color,
+                size: ResponsiveUtils.valueByScreen(
+                  context: context,
+                  mobile: 18,
+                  tablet: 20,
+                  desktop: 22,
+                ),
+              ),
             ],
           ),
           FittedBox(
@@ -529,8 +617,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
             alignment: Alignment.centerLeft,
             child: Text(
               value,
-              style: const TextStyle(
-                fontSize: 22,
+              style: TextStyle(
+                fontSize: ResponsiveUtils.responsiveFontSize(
+                  context,
+                  mobile: 20,
+                  tablet: 22,
+                  desktop: 24,
+                ),
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
@@ -541,7 +634,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildReserveEvolutionChart(DashboardProvider provider) {
+  Widget _buildReserveEvolutionChart(DashboardProvider provider, BuildContext context) {
     // Get data based on selected period
     final List<MonthlyDataPoint> data;
 
@@ -565,11 +658,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     if (data.isEmpty) {
-      return _buildEmptyChart('Nenhum dado disponível');
+      return _buildEmptyChart('Nenhum dado disponível', context);
     }
 
     return Container(
-      height: 250,
+      height: ResponsiveUtils.getChartHeight(context),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -683,7 +776,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildIncomeExpensesChart(DashboardProvider provider) {
+  Widget _buildIncomeExpensesChart(DashboardProvider provider, BuildContext context) {
     // Get data based on selected period
     final List<MonthlyDataPoint> data;
 
@@ -703,7 +796,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
 
     if (data.isEmpty) {
-      return _buildEmptyChart('Nenhum dado disponível');
+      return _buildEmptyChart('Nenhum dado disponível', context);
     }
 
     final barWidth = _getDynamicBarWidth(data.length);
@@ -712,7 +805,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Container(
       key: ValueKey('income_expenses_${_selectedIncomeExpensesPeriod.name}_${data.length}'),
-      height: 250,
+      height: ResponsiveUtils.getChartHeight(context),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -747,7 +840,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 enabled: true,
                 touchTooltipData: BarTouchTooltipData(
                   getTooltipColor: (group) => const Color(0xFF2d3561),
-                  tooltipRoundedRadius: 8,
+                  tooltipBorderRadius: BorderRadius.circular(8),
                   tooltipPadding: const EdgeInsets.all(8),
                   getTooltipItem: (group, groupIndex, rod, rodIndex) {
                     final dataPoint = data[group.x.toInt()];
@@ -1103,17 +1196,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildEmptyChart(String message) {
+  Widget _buildEmptyChart(String message, BuildContext context) {
     return Container(
-      height: 250,
-      padding: const EdgeInsets.all(16),
+      height: ResponsiveUtils.getChartHeight(context),
+      padding: ResponsiveUtils.getContentPadding(context),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [Color(0xFF2d3561), Color(0xFF1f2544)],
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(
+          ResponsiveUtils.getBorderRadius(context),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.3),
@@ -1125,7 +1220,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Center(
         child: Text(
           message,
-          style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14),
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.7),
+            fontSize: ResponsiveUtils.responsiveFontSize(
+              context,
+              mobile: 13,
+              tablet: 14,
+              desktop: 15,
+            ),
+          ),
         ),
       ),
     );
@@ -1155,6 +1258,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
           style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14),
         ),
       ),
+    );
+  }
+
+  // ==================== NEW SPENDING ANALYSIS CHARTS ====================
+
+  Widget _buildCategorySpendingChart(DashboardProvider provider) {
+    final now = DateTime.now();
+    final last30Days = now.subtract(const Duration(days: 30));
+    final data = provider.getCategorySpending(
+      startDate: last30Days,
+      endDate: now,
+    );
+
+    return CategorySpendingChart(
+      data: data,
+      period: 'Últimos 30 dias',
+    );
+  }
+
+  Widget _buildHourlySpendingChart(DashboardProvider provider) {
+    final now = DateTime.now();
+    final last7Days = now.subtract(const Duration(days: 7));
+    final data = provider.getHourlySpending(
+      startDate: last7Days,
+      endDate: now,
+    );
+
+    return HourlySpendingChart(
+      data: data,
+      period: 'Últimos 7 dias',
+    );
+  }
+
+  Widget _buildDailyPatternChart(DashboardProvider provider) {
+    final now = DateTime.now();
+    final last30Days = now.subtract(const Duration(days: 30));
+    final data = provider.getDailySpendingPattern(
+      startDate: last30Days,
+      endDate: now,
+    );
+
+    return DailySpendingPatternChart(
+      data: data,
+      period: 'Últimos 30 dias',
+    );
+  }
+
+  Widget _buildValueRangeChart(DashboardProvider provider) {
+    final now = DateTime.now();
+    final last30Days = now.subtract(const Duration(days: 30));
+    final data = provider.getValueRangeDistribution(
+      startDate: last30Days,
+      endDate: now,
+    );
+
+    return ValueRangeChart(
+      data: data,
+      period: 'Últimos 30 dias',
     );
   }
 }
