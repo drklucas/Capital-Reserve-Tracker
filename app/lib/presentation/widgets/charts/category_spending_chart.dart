@@ -91,6 +91,7 @@ class _CategorySpendingChartState extends State<CategorySpendingChart> {
             SizedBox(
               height: isWideScreen ? 350 : 300,
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // Pie Chart - constrained size
