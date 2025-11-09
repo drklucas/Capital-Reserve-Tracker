@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../domain/entities/ai_insight_entity.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../../providers/ai_assistant_provider.dart';
+import '../../widgets/responsive/max_width_container.dart';
 
 /// Screen for displaying AI-generated insights
 class AIInsightsScreen extends StatefulWidget {
@@ -36,9 +38,18 @@ class _AIInsightsScreenState extends State<AIInsightsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Insights Financeiros',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: ResponsiveUtils.responsiveFontSize(
+              context,
+              mobile: 22,
+              tablet: 24,
+              desktop: 26,
+            ),
+            color: Colors.white,
+          ),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
@@ -157,13 +168,22 @@ class _AIInsightsScreenState extends State<AIInsightsScreen> {
   }
 
   Widget _buildInsightsList(List<AIInsightEntity> insights) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: insights.length,
-      itemBuilder: (context, index) {
-        final insight = insights[index];
-        return _buildInsightCard(insight);
-      },
+    return MaxWidthContainer(
+      child: ListView.builder(
+        padding: EdgeInsets.all(
+          ResponsiveUtils.valueByScreen(
+            context: context,
+            mobile: 16.0,
+            tablet: 20.0,
+            desktop: 24.0,
+          ),
+        ),
+        itemCount: insights.length,
+        itemBuilder: (context, index) {
+          final insight = insights[index];
+          return _buildInsightCard(insight);
+        },
+      ),
     );
   }
 

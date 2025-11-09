@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../domain/entities/ai_message_entity.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../../providers/ai_assistant_provider.dart';
+import '../../widgets/responsive/max_width_container.dart';
 
 /// Screen for configuring AI assistant settings and API keys
 class AISettingsScreen extends StatefulWidget {
@@ -31,9 +33,18 @@ class _AISettingsScreenState extends State<AISettingsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Configurar Assistente IA',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: ResponsiveUtils.responsiveFontSize(
+              context,
+              mobile: 20,
+              tablet: 22,
+              desktop: 24,
+            ),
+            color: Colors.white,
+          ),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -51,8 +62,16 @@ class _AISettingsScreenState extends State<AISettingsScreen> {
         child: SafeArea(
           child: Consumer<AIAssistantProvider>(
             builder: (context, provider, child) {
-              return SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
+              return MaxWidthContainer(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.all(
+                    ResponsiveUtils.valueByScreen(
+                      context: context,
+                      mobile: 16.0,
+                      tablet: 20.0,
+                      desktop: 24.0,
+                    ),
+                  ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -156,6 +175,7 @@ class _AISettingsScreenState extends State<AISettingsScreen> {
                     _buildHowToSection(),
                     const SizedBox(height: 16),
                   ],
+                ),
                 ),
               );
             },
