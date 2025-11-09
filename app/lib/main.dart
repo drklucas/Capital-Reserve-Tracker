@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -125,8 +126,10 @@ void main() async {
   await initializeDateFormatting('pt_BR', null);
   Intl.defaultLocale = 'pt_BR';
 
-  // Initialize Home Widget Service
-  await HomeWidgetService.initialize();
+  // Initialize Home Widget Service (only on mobile platforms)
+  if (!kIsWeb) {
+    await HomeWidgetService.initialize();
+  }
 
   // Initialize Firebase instances
   final firebaseAuth = FirebaseAuth.instance;
@@ -156,6 +159,10 @@ void main() async {
     ),
     iOptions: IOSOptions(
       accessibility: KeychainAccessibility.first_unlock,
+    ),
+    webOptions: WebOptions(
+      dbName: 'mygoals_secure_storage',
+      publicKey: 'mygoals_public_key',
     ),
   );
 
