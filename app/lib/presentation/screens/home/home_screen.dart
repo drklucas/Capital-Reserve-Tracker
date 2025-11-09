@@ -6,6 +6,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../../core/services/mock_data_service.dart';
 import '../../../core/utils/widget_updater.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/goal_provider.dart';
 import '../../providers/transaction_provider.dart';
@@ -127,13 +128,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
             child: AppBar(
-              backgroundColor: Colors.transparent, 
+              backgroundColor: Colors.transparent,
               elevation: 0,
               title: Text(
                 AppConstants.appName,
-                style: const TextStyle(
+                style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 24,
+                  fontSize: ResponsiveUtils.responsiveFontSize(
+                    context,
+                    mobile: 22,
+                    tablet: 24,
+                    desktop: 26,
+                  ),
                   color: Colors.white,
                 ),
               ),
@@ -244,11 +250,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       ),
       body: Stack(
         children: [
-          // Animated Background Layer (separated from content)
-          AnimatedBuilder(
-            animation: _backgroundAnimation,
-            builder: (context, child) {
-              return Stack(
+          // Animated Background Layer (separated from content and isolated with RepaintBoundary)
+          RepaintBoundary(
+            child: AnimatedBuilder(
+              animation: _backgroundAnimation,
+              builder: (context, child) {
+                return Stack(
                 children: [
                   // Much Darker Background for liquid glass contrast
                   Container(
@@ -367,6 +374,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ],
               );
             },
+            ),
           ),
           // Content Layer (not affected by animation rebuilds)
           SafeArea(
@@ -376,46 +384,55 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
                 return SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  child: FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: SlideTransition(
-                      position: _slideAnimation,
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppConstants.defaultPadding),
+                  child: ResponsiveLayout(
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: SlideTransition(
+                        position: _slideAnimation,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const SizedBox(height: 20),
+                            SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2.5)),
 
                             // Greeting Section
                             // _buildGreetingSection(context, greeting, authProvider),
 
-                            // const SizedBox(height: 32),
+                            // SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 4)),
 
                             // Capital Card
-                            _buildCapitalCard(context),
+                            RepaintBoundary(
+                              child: _buildCapitalCard(context),
+                            ),
 
-                            const SizedBox(height: 16),
+                            SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2)),
 
                             // Goals Card
-                            _buildGoalsCard(context),
+                            RepaintBoundary(
+                              child: _buildGoalsCard(context),
+                            ),
 
-                            const SizedBox(height: 32),
+                            SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 4)),
 
                             // Quick Actions Grid
-                            _buildQuickActionsGrid(context),
+                            RepaintBoundary(
+                              child: _buildQuickActionsGrid(context),
+                            ),
 
-                            const SizedBox(height: 32),
+                            SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 4)),
 
                             // Stats Overview
-                            _buildStatsOverview(context),
+                            RepaintBoundary(
+                              child: _buildStatsOverview(context),
+                            ),
 
-                            const SizedBox(height: 32),
+                            SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 4)),
 
                             // Active Goals Cards
-                            _buildActiveGoalsSection(context),
+                            RepaintBoundary(
+                              child: _buildActiveGoalsSection(context),
+                            ),
 
-                            const SizedBox(height: 24),
+                            SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 3)),
                           ],
                         ),
                       ),
@@ -493,14 +510,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               scale: value,
               child: InkWell(
                 onTap: () => Navigator.pushNamed(context, '/transactions'),
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(
+                  ResponsiveUtils.getBorderRadius(context),
+                ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(
+                    ResponsiveUtils.getBorderRadius(context),
+                  ),
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                     child: Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(
+                          ResponsiveUtils.getBorderRadius(context),
+                        ),
                         // Thin, subtle border (purple/indigo from capital theme)
                         border: Border.all(
                           color: const Color(0xFF5A67D8).withOpacity(0.35),
@@ -516,18 +539,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ],
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(24),
+                        padding: ResponsiveUtils.getCardPadding(context),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
+                                Text(
                                   'Reserva de Capital',
                                   style: TextStyle(
                                     color: Colors.white70,
-                                    fontSize: 14,
+                                    fontSize: ResponsiveUtils.responsiveFontSize(
+                                      context,
+                                      mobile: 13,
+                                      tablet: 14,
+                                      desktop: 15,
+                                    ),
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -552,9 +580,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             const SizedBox(height: 16),
                             Text(
                               currencyFormat.format(balance),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 40,
+                                fontSize: ResponsiveUtils.responsiveFontSize(
+                                  context,
+                                  mobile: 36,
+                                  tablet: 40,
+                                  desktop: 44,
+                                ),
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: -1,
                               ),
@@ -564,7 +597,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               balance >= 0 ? 'Saldo disponível' : 'Saldo negativo',
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.7),
-                                fontSize: 16,
+                                fontSize: ResponsiveUtils.responsiveFontSize(
+                                  context,
+                                  mobile: 14,
+                                  tablet: 16,
+                                  desktop: 18,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 24),
@@ -673,14 +711,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               scale: value,
               child: InkWell(
                 onTap: () => Navigator.pushNamed(context, '/goals'),
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(
+                  ResponsiveUtils.getBorderRadius(context),
+                ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(
+                    ResponsiveUtils.getBorderRadius(context),
+                  ),
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                     child: Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(24),
+                        borderRadius: BorderRadius.circular(
+                          ResponsiveUtils.getBorderRadius(context),
+                        ),
                         // Thin, subtle border (blue/cyan from goals theme)
                         border: Border.all(
                           color: const Color(0xFF3B82F6).withOpacity(0.35),
@@ -696,7 +740,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ],
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(24),
+                        padding: ResponsiveUtils.getCardPadding(context),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -809,25 +853,42 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildQuickActionsGrid(BuildContext context) {
+    final columns = ResponsiveUtils.valueByScreen(
+      context: context,
+      mobile: 2,
+      tablet: 3,
+      desktop: 5,
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Ações Rápidas',
           style: TextStyle(
-            fontSize: 22,
+            fontSize: ResponsiveUtils.responsiveFontSize(
+              context,
+              mobile: 20,
+              tablet: 22,
+              desktop: 24,
+            ),
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2)),
         GridView.count(
           shrinkWrap: true,
           physics: const ClampingScrollPhysics(),
-          crossAxisCount: 2,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          childAspectRatio: 1.3,
+          crossAxisCount: columns,
+          mainAxisSpacing: ResponsiveUtils.getSpacing(context, multiplier: 2),
+          crossAxisSpacing: ResponsiveUtils.getSpacing(context, multiplier: 2),
+          childAspectRatio: ResponsiveUtils.valueByScreen(
+            context: context,
+            mobile: 1.3,
+            tablet: 1.2,
+            desktop: 1.1,
+          ),
           children: [
             _AnimatedQuickActionCard(
               icon: Icons.flag_rounded,
@@ -946,10 +1007,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Header with title
-                  const Text(
+                  Text(
                     'Visão Geral',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: ResponsiveUtils.responsiveFontSize(
+                        context,
+                        mobile: 18,
+                        tablet: 20,
+                        desktop: 22,
+                      ),
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -1081,21 +1147,31 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Metas Ativas',
                   style: TextStyle(
-                    fontSize: 22,
+                    fontSize: ResponsiveUtils.responsiveFontSize(
+                      context,
+                      mobile: 20,
+                      tablet: 22,
+                      desktop: 24,
+                    ),
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pushNamed(context, '/goals'),
-                  child: const Text(
+                  child: Text(
                     'Ver todas',
                     style: TextStyle(
                       color: Colors.white70,
-                      fontSize: 14,
+                      fontSize: ResponsiveUtils.responsiveFontSize(
+                        context,
+                        mobile: 13,
+                        tablet: 14,
+                        desktop: 15,
+                      ),
                     ),
                   ),
                 ),

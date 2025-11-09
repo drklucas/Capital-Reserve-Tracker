@@ -98,6 +98,19 @@ For detailed architecture information, see [Architecture Documentation](docs/arc
 
 For detailed setup instructions, see [Complete Setup Guide](docs/setup.md).
 
+## Documentation
+
+Complete documentation is available in the [docs/](docs/) directory:
+
+- **[Documentation Index](docs/README.md)** - Start here for all documentation
+- **[Setup Guide](docs/setup.md)** - Installation and configuration
+- **[Architecture](docs/architecture.md)** - Clean Architecture details
+- **[Security](docs/security.md)** - Security guidelines
+- **[Feature Guides](docs/features/)** - Widgets, colors, and features
+- **[Development Guides](docs/guides/)** - Responsive design, migration, AI setup
+- **[Implementation Summaries](docs/implementation/)** - Refactoring documentation
+- **[Sprint Progress](docs/sprints/)** - Sprint documentation and progress
+
 ## Project Structure
 
 ```
@@ -111,10 +124,13 @@ Capital-Reserve-Tracker/
 │   ├── test/              # Test files
 │   └── .env.example       # Environment variables template
 ├── docs/                   # Documentation
-│   ├── setup.md           # Setup instructions
-│   ├── security.md        # Security guidelines
-│   ├── architecture.md    # Architecture documentation
-│   └── sprints/           # Sprint documentation
+│   ├── README.md          # Documentation index
+│   ├── features/          # Feature documentation
+│   ├── guides/            # Development guides
+│   ├── implementation/    # Implementation summaries
+│   ├── sprints/           # Sprint documentation
+│   └── web-desktop-adaptation/  # Desktop docs
+├── CHANGELOG.md           # Version history
 └── README.md              # This file
 ```
 

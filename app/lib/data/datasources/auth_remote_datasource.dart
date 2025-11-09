@@ -249,14 +249,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       return querySnapshot.docs.isNotEmpty;
     } catch (e) {
-      // If error, try Firebase Auth method (less reliable)
-      try {
-        final methods = await _firebaseAuth.fetchSignInMethodsForEmail(email);
-        // Safe cast to List to handle Pigeon type issues
-        return (methods as List).isNotEmpty;
-      } catch (_) {
-        throw ServerException(message: e.toString());
-      }
+      // fetchSignInMethodsForEmail was removed in firebase_auth 6.x
+      // Return false if Firestore check fails
+      return false;
     }
   }
 

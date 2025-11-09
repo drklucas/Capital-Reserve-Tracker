@@ -4,10 +4,12 @@ import 'package:intl/intl.dart';
 import '../../../domain/entities/goal_entity.dart';
 import '../../../domain/entities/task_entity.dart';
 import '../../../core/constants/goal_colors.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../../providers/goal_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../widgets/goal_themed_scaffold.dart';
+import '../../widgets/responsive/max_width_container.dart';
 import 'add_goal_screen.dart';
 
 class GoalDetailScreen extends StatefulWidget {
@@ -287,11 +289,16 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
           appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Detalhes da Meta',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 24,
+            fontSize: ResponsiveUtils.responsiveFontSize(
+              context,
+              mobile: 22,
+              tablet: 24,
+              desktop: 26,
+            ),
             color: Colors.white,
           ),
         ),
@@ -437,36 +444,67 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 return RefreshIndicator(
                   onRefresh: _loadGoalDetails,
                   color: primaryColor,
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 20),
-
-                          // Title and Status Card
-                          _buildHeaderCard(goal, gradient),
-
-                          const SizedBox(height: 16),
-
-                          // Progress Card
-                          _buildProgressCard(primaryColor),
-
-                          const SizedBox(height: 16),
-
-                          // Stats Card
-                          _buildStatsCard(goal, primaryColor),
-
-                          const SizedBox(height: 16),
-
-                          // Tasks Card
-                          _buildTasksCard(),
-
-                          const SizedBox(height: 80),
-                        ],
+                  child: MaxWidthContainer(
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.all(
+                        ResponsiveUtils.valueByScreen(
+                          context: context,
+                          mobile: 16.0,
+                          tablet: 20.0,
+                          desktop: 24.0,
+                        ),
                       ),
+                      children: [
+                        SizedBox(
+                          height: ResponsiveUtils.valueByScreen(
+                            context: context,
+                            mobile: 16.0,
+                            tablet: 20.0,
+                            desktop: 24.0,
+                          ),
+                        ),
+
+                        // Title and Status Card
+                        _buildHeaderCard(context, goal, gradient),
+
+                        SizedBox(
+                          height: ResponsiveUtils.getSpacing(
+                            context,
+                            multiplier: 2,
+                          ),
+                        ),
+
+                        // Progress Card
+                        _buildProgressCard(context, primaryColor),
+
+                        SizedBox(
+                          height: ResponsiveUtils.getSpacing(
+                            context,
+                            multiplier: 2,
+                          ),
+                        ),
+
+                        // Stats Card
+                        _buildStatsCard(context, goal, primaryColor),
+
+                        SizedBox(
+                          height: ResponsiveUtils.getSpacing(
+                            context,
+                            multiplier: 2,
+                          ),
+                        ),
+
+                        // Tasks Card
+                        _buildTasksCard(context),
+
+                        SizedBox(
+                          height: ResponsiveUtils.getSpacing(
+                            context,
+                            multiplier: 10,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -506,12 +544,31 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     );
   }
 
-  Widget _buildHeaderCard(GoalEntity goal, LinearGradient gradient) {
+  Widget _buildHeaderCard(
+    BuildContext context,
+    GoalEntity goal,
+    LinearGradient gradient,
+  ) {
+    final padding = ResponsiveUtils.getCardPadding(context);
+    final borderRadius = ResponsiveUtils.getBorderRadius(context);
+    final titleFontSize = ResponsiveUtils.responsiveFontSize(
+      context,
+      mobile: 24.0,
+      tablet: 28.0,
+      desktop: 32.0,
+    );
+    final descriptionFontSize = ResponsiveUtils.responsiveFontSize(
+      context,
+      mobile: 14.0,
+      tablet: 16.0,
+      desktop: 18.0,
+    );
+
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: padding,
       decoration: BoxDecoration(
         gradient: gradient,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
           BoxShadow(
             color: gradient.colors.first.withOpacity(0.3),
@@ -528,8 +585,8 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               Expanded(
                 child: Text(
                   goal.title,
-                  style: const TextStyle(
-                    fontSize: 28,
+                  style: TextStyle(
+                    fontSize: titleFontSize,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -539,11 +596,11 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
             ],
           ),
           if (goal.description.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 1.5)),
             Text(
               goal.description,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: descriptionFontSize,
                 color: Colors.white.withOpacity(0.9),
               ),
             ),
@@ -553,15 +610,36 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     );
   }
 
-  Widget _buildProgressCard(Color primaryColor) {
+  Widget _buildProgressCard(BuildContext context, Color primaryColor) {
     return Consumer<TaskProvider>(
-      builder: (context, taskProvider, _) {
+      builder: (_, taskProvider, __) {
         final totalTasks = taskProvider.taskCount;
         final completedTasks = taskProvider.completedCount;
         final progress = totalTasks > 0 ? (completedTasks / totalTasks * 100) : 0.0;
 
+        final padding = ResponsiveUtils.getCardPadding(context);
+        final borderRadius = ResponsiveUtils.getBorderRadius(context);
+        final titleFontSize = ResponsiveUtils.responsiveFontSize(
+          context,
+          mobile: 18.0,
+          tablet: 20.0,
+          desktop: 22.0,
+        );
+        final textFontSize = ResponsiveUtils.responsiveFontSize(
+          context,
+          mobile: 16.0,
+          tablet: 18.0,
+          desktop: 20.0,
+        );
+        final percentFontSize = ResponsiveUtils.responsiveFontSize(
+          context,
+          mobile: 22.0,
+          tablet: 24.0,
+          desktop: 26.0,
+        );
+
         return Container(
-          padding: const EdgeInsets.all(24),
+          padding: padding,
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
@@ -571,7 +649,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 Color(0xFF1f2544),
               ],
             ),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(borderRadius),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.2),
@@ -583,37 +661,37 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Progresso das Tarefas',
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: titleFontSize,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2)),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     '$completedTasks de $totalTasks tarefas',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: textFontSize,
                       fontWeight: FontWeight.bold,
                       color: primaryColor,
                     ),
                   ),
                   Text(
                     '${progress.toStringAsFixed(0)}%',
-                    style: const TextStyle(
-                      fontSize: 24,
+                    style: TextStyle(
+                      fontSize: percentFontSize,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 1.5)),
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: LinearProgressIndicator(
@@ -643,9 +721,22 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     );
   }
 
-  Widget _buildStatsCard(GoalEntity goal, Color primaryColor) {
+  Widget _buildStatsCard(
+    BuildContext context,
+    GoalEntity goal,
+    Color primaryColor,
+  ) {
+    final padding = ResponsiveUtils.getCardPadding(context);
+    final borderRadius = ResponsiveUtils.getBorderRadius(context);
+    final titleFontSize = ResponsiveUtils.responsiveFontSize(
+      context,
+      mobile: 18.0,
+      tablet: 20.0,
+      desktop: 22.0,
+    );
+
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: padding,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -655,7 +746,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
             Color(0xFF1f2544),
           ],
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
@@ -667,23 +758,25 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Estatísticas',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: titleFontSize,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2.5)),
           _buildStatRow(
+            context,
             'Período',
             '${_dateFormat.format(goal.startDate)} - ${_dateFormat.format(goal.targetDate)}',
             Icons.date_range,
             primaryColor,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2)),
           _buildStatRow(
+            context,
             goal.isOverdue ? 'Prazo expirado' : 'Dias restantes',
             goal.isOverdue
                 ? 'há ${DateTime.now().difference(goal.targetDate).inDays} dias'
@@ -692,8 +785,9 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
             primaryColor,
             isWarning: goal.isOverdue,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2)),
           _buildStatRow(
+            context,
             'Dias decorridos',
             '${goal.daysElapsed} de ${goal.totalDays} dias',
             Icons.access_time,
@@ -705,14 +799,35 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
   }
 
   Widget _buildStatRow(
+    BuildContext context,
     String label,
     String value,
     IconData icon,
     Color primaryColor, {
     bool isWarning = false,
   }) {
+    final labelFontSize = ResponsiveUtils.responsiveFontSize(
+      context,
+      mobile: 13.0,
+      tablet: 14.0,
+      desktop: 15.0,
+    );
+    final valueFontSize = ResponsiveUtils.responsiveFontSize(
+      context,
+      mobile: 15.0,
+      tablet: 16.0,
+      desktop: 17.0,
+    );
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(
+        ResponsiveUtils.valueByScreen(
+          context: context,
+          mobile: 14.0,
+          tablet: 16.0,
+          desktop: 18.0,
+        ),
+      ),
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.05),
         borderRadius: BorderRadius.circular(16),
@@ -743,15 +858,22 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: labelFontSize,
                     color: Colors.white.withOpacity(0.7),
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(
+                  height: ResponsiveUtils.valueByScreen(
+                    context: context,
+                    mobile: 4.0,
+                    tablet: 5.0,
+                    desktop: 6.0,
+                  ),
+                ),
                 Text(
                   value,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: valueFontSize,
                     fontWeight: FontWeight.w600,
                     color: isWarning ? Colors.red : Colors.white,
                   ),
@@ -764,15 +886,24 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     );
   }
 
-  Widget _buildTasksCard() {
+  Widget _buildTasksCard(BuildContext context) {
     return Consumer<TaskProvider>(
-      builder: (context, taskProvider, _) {
+      builder: (_, taskProvider, child) {
         final tasks = taskProvider.tasks;
         final completedCount = taskProvider.completedCount;
         final totalCount = taskProvider.taskCount;
 
+        final padding = ResponsiveUtils.getCardPadding(context);
+        final borderRadius = ResponsiveUtils.getBorderRadius(context);
+        final titleFontSize = ResponsiveUtils.responsiveFontSize(
+          context,
+          mobile: 18.0,
+          tablet: 20.0,
+          desktop: 22.0,
+        );
+
         return Container(
-          padding: const EdgeInsets.all(24),
+          padding: padding,
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
@@ -782,7 +913,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 Color(0xFF1f2544),
               ],
             ),
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(borderRadius),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.2),
@@ -797,10 +928,10 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Tarefas',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: titleFontSize,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -822,7 +953,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2)),
               if (tasks.isEmpty)
                 Center(
                   child: Padding(
