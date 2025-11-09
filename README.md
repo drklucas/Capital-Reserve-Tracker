@@ -1,4 +1,6 @@
-# Capital Reserve Tracker
+# Capital Reserve Tracker (MyGoals)
+
+> **Note:** The app's display name is "MyGoals" (as shown in the UI), while "Capital Reserve Tracker" is the technical/project name.
 
 ## SECURITY WARNING
 
@@ -18,9 +20,13 @@ Capital Reserve Tracker is a Flutter mobile application designed to help users t
 - ✅ Real-time data synchronization with Firestore
 - ✅ Transaction filtering (by type, date, goal)
 - ✅ Automatic balance calculations
-- ⏳ Set and track sabbatical year financial goals (Coming Soon)
-- ⏳ Visualize progress with charts and analytics (Coming Soon)
-- ⏳ Calculate time to goal achievement (Coming Soon)
+- ✅ Goal management with task-based progress tracking
+- ✅ Customizable goal colors (10 gradient themes)
+- ✅ Android home screen widgets (income/expenses + reserve evolution)
+- ✅ Modern dark theme UI with glass-morphism effects
+- ✅ Period-based analytics (Today/Week/Month views)
+- ⏳ Advanced charts and visualizations (Coming Soon - Sprint 3)
+- ⏳ Export functionality (Coming Soon - Sprint 3)
 - ✅ Multi-platform support (iOS, Android, Web, Windows, Linux, macOS)
 
 ## Architecture
@@ -37,8 +43,11 @@ For detailed architecture information, see [Architecture Documentation](docs/arc
 
 - **Frontend**: Flutter 3.x with Dart
 - **State Management**: Provider
-- **Backend**: Firebase (Auth, Firestore, Storage)
+- **Backend**: Firebase (Auth, Firestore, Storage, Analytics, Crashlytics)
 - **Architecture**: Clean Architecture + MVVM
+- **Native Widgets**: home_widget ^0.6.0 (Android home screen widgets)
+- **Native Integration**: Kotlin widgets with RemoteViews
+- **Functional Programming**: dartz (Either pattern for error handling)
 - **Testing**: Unit, Widget, and Integration tests
 
 ## Getting Started
@@ -170,14 +179,16 @@ Read the [Security Guidelines](docs/security.md) for more information.
   - Security setup for public repository
   - Complete documentation
 
-- **Sprint 2** ✅: Core features implementation (Completed ~95%)
+- **Sprint 2** ✅: Core features implementation (Completed ~98%)
   - ✅ Financial transaction management (CRUD complete)
   - ✅ 15 transaction categories
   - ✅ Real-time Firestore synchronization
   - ✅ Transaction filtering and calculations
   - ✅ Goal management system (CRUD complete)
   - ✅ Task management with drag-and-drop reordering
-  - ✅ Modern dark theme HomeScreen with animations
+  - ✅ Customizable goal colors (10 gradient themes)
+  - ✅ Android home screen widgets (income/expenses + reserve evolution)
+  - ✅ Modern dark theme HomeScreen with glass-morphism effects
   - ✅ Real-time stats overview with period filters (Today/Week/Month)
   - ✅ Active goals display with progress tracking
   - ⏳ Advanced charts and analytics (Pending - Sprint 3)
@@ -242,7 +253,9 @@ For more issues, see [Setup Guide](docs/setup.md#troubleshooting).
 - [x] Transaction filtering
 - [x] Goal creation and management
 - [x] Task management with reordering
-- [x] Modern dark theme UI
+- [x] Customizable goal colors (10 gradient themes)
+- [x] Android home screen widgets
+- [x] Modern dark theme UI with glass-morphism
 - [x] HomeScreen dashboard with stats
 - [x] Period-based analytics (Day/Week/Month)
 

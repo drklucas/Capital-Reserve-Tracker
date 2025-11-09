@@ -7,6 +7,82 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - 2025-10-31
+
+#### Customizable Goal Colors System
+- 10 predefined gradient color schemes for personalized goal appearance
+- Visual color picker UI in goal creation/edit screen with live preview
+- Dynamic theming system that adapts goal detail screen to selected color:
+  - Background gradient with goal's colors
+  - Header card with goal's gradient and matching shadows
+  - Progress bars and stats using goal's primary color
+  - Floating action button with goal's gradient
+  - Loading indicators and buttons themed with goal's colors
+- New architectural components:
+  - `app/lib/core/constants/goal_colors.dart` - 10 gradient palettes
+  - `app/lib/presentation/widgets/goal_themed_scaffold.dart` - Theme utilities
+- Field `colorIndex` added to GoalEntity and GoalModel
+- Full Firestore and JSON serialization support
+- Backward compatible: existing goals default to -1 (auto-assign by position)
+- Auto-assignment algorithm: uses goal index % 10 for consistent colors
+
+#### Android Home Screen Widgets
+- Two native Android widgets for real-time financial tracking:
+  1. **Income & Expenses Widget** (4x2 cells):
+     - Displays last 6 months of income vs expenses
+     - Total balance calculation
+     - Bar chart visualization (green for income, red for expenses)
+     - Month labels in Portuguese
+     - Last update timestamp
+  2. **Reserve Evolution Widget** (4x3 cells):
+     - Current reserve amount prominently displayed
+     - Evolution chart over last 6 months
+     - Growth percentage calculation
+     - Monthly average change
+- Widget update system:
+  - Automatic updates every hour via Android native scheduling
+  - Instant update 3 seconds after app opens
+  - Manual update capability via WidgetUpdater utility
+- Technical implementation:
+  - 3 Kotlin widget providers with RemoteViews
+  - 7 XML layouts with dark theme (#1a1a2e background)
+  - 7 widget configuration files
+  - Flutter-Android bridge via home_widget package (v0.6.0)
+  - SharedPreferences for data passing
+  - WidgetDataProvider for calculating widget data from Firebase
+  - HomeWidgetService for managing widget lifecycle
+  - WidgetUpdater utility for easy updates from anywhere in app
+- Comprehensive documentation:
+  - `docs/home-widgets.md` - Full technical documentation
+  - `docs/widget-troubleshooting.md` - Debug and troubleshooting guide
+  - `WIDGETS_README.md` - Quick start guide
+
+#### HomeScreen UI Enhancements
+- AppBar with glass-morphism effect:
+  - BackdropFilter with blur (sigmaX: 3, sigmaY: 3)
+  - Semi-transparent black background with opacity
+  - Frosted glass appearance
+- New background animation controller with 8-second cycle
+- Enhanced visual effects and transitions
+- Major refactoring: 781 lines added, 534 lines removed
+
+### Changed
+
+#### App Branding
+- App display name changed from "Capital Reserve Tracker" to "MyGoals"
+- Updated in `app/lib/core/constants/app_constants.dart`
+- Reflected across all UI components
+
+#### Goal System
+- Color selection now available in add/edit goal screens
+- Goal cards display user-selected colors
+- Goal detail screens adapt theme to match goal's color
+
+#### Widget Integration
+- Added home_widget dependency (v0.6.0)
+- Integrated WidgetDataProvider into dependency injection
+- HomeScreen triggers widget updates after data loads
+
 ### Added - 2025-01-19
 
 #### Task Management System

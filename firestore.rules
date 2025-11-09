@@ -128,6 +128,30 @@ service cloud.firestore {
 
         allow delete: if isOwner(userId) && isOwner(resource.data.userId);
       }
+
+      // AI Conversations subcollection
+      match /ai_conversations/{conversationId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+
+        // Messages in conversation
+        match /messages/{messageId} {
+          allow read: if isOwner(userId);
+          allow create: if isOwner(userId);
+          allow update: if isOwner(userId);
+          allow delete: if isOwner(userId);
+        }
+      }
+
+      // AI Insights subcollection
+      match /ai_insights/{insightId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+      }
     }
 
     // Deny all other access

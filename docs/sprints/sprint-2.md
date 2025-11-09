@@ -165,14 +165,118 @@
   - Navigation to goals screen
   - Quick action button for goals
 
+## Completed Features (Recent - October 2025)
+
+### 3. Customizable Goal Colors System ✅
+
+#### Implementation Details
+- **10 Predefined Gradient Color Palettes:**
+  1. Pink to Purple (#EC4899 → #8B5CF6)
+  2. Purple to Blue (#8B5CF6 → #3B82F6)
+  3. Orange to Red (#F59E0B → #EF4444)
+  4. Green to Dark Green (#10B981 → #059669)
+  5. Cyan to Blue (#06B6D4 → #3B82F6)
+  6. Indigo to Purple (#6366F1 → #8B5CF6)
+  7. Teal to Green (#14B8A6 → #10B981)
+  8. Red to Pink (#F43F5E → #EC4899)
+  9. Yellow to Orange (#FBBF24 → #F59E0B)
+  10. Violet to Purple (#7C3AED → #6B46C1)
+
+#### New Files Created
+- `app/lib/core/constants/goal_colors.dart` - Color palette definitions and utilities
+- `app/lib/presentation/widgets/goal_themed_scaffold.dart` - Theme extraction helpers
+
+#### Features Implemented
+- Visual color picker in add/edit goal screens with live preview
+- Selected color highlighted with white border and checkmark
+- Color name display below picker
+- Dynamic theming on goal detail screen:
+  - Background gradient adapts to goal's colors
+  - Header card uses goal's gradient with matching shadow
+  - Progress bars themed with goal's primary color
+  - Statistics icons and borders use goal's primary color
+  - Floating action button with goal's gradient and glow
+  - Loading indicators and buttons themed consistently
+- Goal cards in lists display selected colors
+- Auto-assignment when colorIndex = -1 (uses position % 10)
+- Backward compatible with existing goals
+
+#### Data Layer Changes
+- Added `colorIndex` field to GoalEntity (int, default: -1)
+- Added `colorIndex` field to GoalModel with full serialization
+- Firestore integration maintains backward compatibility
+
+### 4. Android Home Screen Widgets ✅
+
+#### Widgets Implemented
+1. **Income & Expenses Widget** (4x2 cells, ~180dp height):
+   - Displays last 6 months of financial data
+   - Bar chart with income (green) and expenses (red)
+   - Total balance calculation
+   - Month labels in Portuguese
+   - Last update timestamp
+   - Dark theme with #1a1a2e background
+
+2. **Reserve Evolution Widget** (4x3 cells, ~200dp height):
+   - Current reserve amount prominently displayed
+   - Evolution over last 6 months
+   - Growth percentage since first month
+   - Monthly average change
+   - Compact design without month list
+
+#### Update System
+- **Automatic Updates:**
+  - Every 1 hour via Android native updatePeriodMillis
+  - 3 seconds after app opens via HomeScreen
+  - Manual trigger capability via WidgetUpdater.updateWidgets()
+- **Data Flow:**
+  - WidgetDataProvider queries last 6 months from Firebase
+  - Calculates monthly totals and reserve evolution
+  - Saves to SharedPreferences via home_widget plugin
+  - Kotlin widgets read and render from SharedPreferences
+
+#### Technical Implementation
+- **Flutter/Dart Components:**
+  - `lib/presentation/providers/widget_data_provider.dart` - Data calculation
+  - `lib/core/services/home_widget_service.dart` - Widget lifecycle management
+  - `lib/core/utils/widget_updater.dart` - Update utilities
+- **Android/Kotlin Components:**
+  - 3 widget providers: IncomeExpenseWidgetV2, ReserveEvolutionWidgetV2, SimpleTestWidget
+  - 7 XML layouts with RemoteViews compatibility
+  - 7 widget configuration files
+- **Dependencies:**
+  - home_widget: ^0.6.0 - Flutter-Android bridge
+  - Updated AndroidManifest with 3 widget receivers
+
+#### Documentation Created
+- `docs/home-widgets.md` - Complete technical documentation (320 lines)
+- `docs/widget-troubleshooting.md` - Debugging guide (312 lines)
+- `WIDGETS_README.md` - Quick start guide (215 lines)
+
+### 5. HomeScreen UI Enhancements ✅
+
+#### Glass-morphism Effect
+- AppBar with BackdropFilter (blur: sigmaX=3, sigmaY=3)
+- Semi-transparent black background with opacity
+- Frosted glass appearance for modern look
+
+#### New Animations
+- Background animation controller with 8-second cycle
+- Smooth color transitions and gradients
+- Enhanced visual effects throughout
+
+#### Code Quality
+- Major refactoring: 781 lines added, 534 lines removed
+- Improved code organization and maintainability
+
 ## Pending Features
 
-### 3. Goal-Transaction Integration
+### 6. Goal-Transaction Integration (Partially Complete)
+- ✅ Transaction association with goals
 - [ ] Update transaction screens to select goal when creating transaction
-- [ ] Automatic goal amount recalculation on transaction changes
-- [ ] Display goal-filtered transactions
+- [ ] Display goal-filtered transactions in goal detail
 
-### 3. Task Management System
+### 7. Task Management System (COMPLETED - See section above)
 
 #### Domain Layer
 - [ ] `task_entity.dart` - Task business entity
@@ -477,20 +581,23 @@ users/{userId}/
 18. `lib/presentation/screens/home/home_screen.dart` - Updated navigation
 19. `firestore.rules` - Enhanced with goal security rules
 
-### Sprint 2 Progress: ~65% Complete
+### Sprint 2 Progress: ~98% Complete
 
 **Completed:**
 - ✅ Transaction Management System (100%)
-- ✅ Goal Management System (95% - UI needs refinement)
+- ✅ Goal Management System (100%)
+- ✅ Task Management System (100%)
+- ✅ Customizable Goal Colors (100%)
+- ✅ Android Home Screen Widgets (100%)
+- ✅ HomeScreen Glass-morphism UI (100%)
 - ✅ Firebase Security Rules (100%)
 - ✅ APK Build (100%)
 
 **Pending:**
-- ⏳ Task Management System (0%)
-- ⏳ Goal-Transaction Integration (30%)
-- ⏳ Dashboard with Charts (0%)
-- ⏳ Countdown Timer (0%)
-- ⏳ Notifications (0%)
+- ⏳ Dashboard with Charts (0% - moved to Sprint 3)
+- ⏳ Countdown Timer (0% - moved to Sprint 3)
+- ⏳ Notifications (0% - moved to Sprint 3)
+- ⏳ Export functionality (0% - moved to Sprint 3)
 
 ## Next Steps
 

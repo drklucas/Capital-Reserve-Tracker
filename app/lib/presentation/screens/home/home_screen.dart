@@ -12,6 +12,7 @@ import '../../providers/transaction_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../providers/home_screen_provider.dart';
 import '../../widgets/goal_card.dart';
+import '../ai/ai_home_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -126,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
             child: AppBar(
-              backgroundColor: Colors.black.withOpacity(0.1),
+              backgroundColor: Colors.transparent, 
               elevation: 0,
               title: Text(
                 AppConstants.appName,
@@ -249,17 +250,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             builder: (context, child) {
               return Stack(
                 children: [
-                  // Modern Complex Gradient Background - Darker Blue & Purple
+                  // Much Darker Background for liquid glass contrast
                   Container(
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          Color(0xFF060811), // Almost black with blue tint
-                          Color(0xFF0D0D1F), // Very dark navy
-                          Color(0xFF1A0F3D), // Dark purple-black
-                          Color(0xFF0F1F35), // Dark ocean blue-black
+                          Color(0xFF020308), // Almost pure black with hint of blue
+                          Color(0xFF050510), // Pure dark
+                          Color(0xFF0A0618), // Very dark purple-black
+                          Color(0xFF050B15), // Very dark blue-black
                         ],
                         stops: [0.0, 0.3, 0.6, 1.0],
                       ),
@@ -276,8 +277,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           ),
                           radius: 1.2,
                           colors: [
-                            const Color(0xFF8B5CF6).withOpacity(0.50), // Purple MUITO visível
-                            const Color(0xFF6B46C1).withOpacity(0.35), // Purple intermediário
+                            const Color(0xFF8B5CF6).withOpacity(0.25), // Purple mais sutil
+                            const Color(0xFF6B46C1).withOpacity(0.15), // Purple leve
                             Colors.transparent,
                           ],
                           stops: const [0.0, 0.5, 1.0],
@@ -296,8 +297,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           ),
                           radius: 1.5,
                           colors: [
-                            const Color(0xFF3B82F6).withOpacity(0.45), // Blue MUITO vibrante
-                            const Color(0xFF2563EB).withOpacity(0.28),
+                            const Color(0xFF3B82F6).withOpacity(0.22), // Blue mais sutil
+                            const Color(0xFF2563EB).withOpacity(0.12),
                             Colors.transparent,
                           ],
                         ),
@@ -315,8 +316,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           ),
                           radius: 1.4,
                           colors: [
-                            const Color(0xFF9333EA).withOpacity(0.48), // Violet SUPER visível
-                            const Color(0xFF7C3AED).withOpacity(0.32), // Purple intermediário
+                            const Color(0xFF9333EA).withOpacity(0.24), // Violet mais sutil
+                            const Color(0xFF7C3AED).withOpacity(0.14), // Purple leve
                             Colors.transparent,
                           ],
                           stops: const [0.0, 0.5, 1.0],
@@ -335,8 +336,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           ),
                           radius: 1.6,
                           colors: [
-                            const Color(0xFFD946EF).withOpacity(0.42), // Magenta MUITO visível
-                            const Color(0xFFA855F7).withOpacity(0.28), // Purple-pink
+                            const Color(0xFFD946EF).withOpacity(0.20), // Magenta mais sutil
+                            const Color(0xFFA855F7).withOpacity(0.12), // Purple-pink leve
                             Colors.transparent,
                           ],
                           stops: const [0.0, 0.6, 1.0],
@@ -355,8 +356,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           ),
                           radius: 1.3,
                           colors: [
-                            const Color(0xFF3B82F6).withOpacity(0.46), // Blue royal MUITO visível
-                            const Color(0xFF2563EB).withOpacity(0.30),
+                            const Color(0xFF3B82F6).withOpacity(0.23), // Blue royal mais sutil
+                            const Color(0xFF2563EB).withOpacity(0.13),
                             Colors.transparent,
                           ],
                         ),
@@ -496,27 +497,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(24),
                   child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(24),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.white.withOpacity(0.15),
-                            Colors.white.withOpacity(0.05),
-                          ],
-                        ),
+                        // Thin, subtle border (purple/indigo from capital theme)
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
+                          color: const Color(0xFF5A67D8).withOpacity(0.35),
                           width: 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
+                            color: const Color(0xFF5A67D8).withOpacity(0.15),
+                            blurRadius: 15,
+                            offset: const Offset(0, 3),
+                            spreadRadius: -5,
                           ),
                         ],
                       ),
@@ -616,12 +611,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
             borderRadius: BorderRadius.circular(16),
+            // Thin, subtle border with color
             border: Border.all(
-              color: color.withOpacity(0.3),
-              width: 1,
+              color: color.withOpacity(0.35),
+              width: 1.5,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.15),
+                blurRadius: 15,
+                offset: const Offset(0, 3),
+                spreadRadius: -5,
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -674,27 +677,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(24),
                   child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(24),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.white.withOpacity(0.15),
-                            Colors.white.withOpacity(0.05),
-                          ],
-                        ),
+                        // Thin, subtle border (blue/cyan from goals theme)
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
+                          color: const Color(0xFF3B82F6).withOpacity(0.35),
                           width: 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
+                            color: const Color(0xFF3B82F6).withOpacity(0.15),
+                            blurRadius: 15,
+                            offset: const Offset(0, 3),
+                            spreadRadius: -5,
                           ),
                         ],
                       ),
@@ -860,6 +857,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               delay: 300,
               onTap: () => Navigator.pushNamed(context, AppConstants.dashboardRoute),
             ),
+            _AnimatedQuickActionCard(
+              icon: Icons.psychology_rounded,
+              title: 'Assistente IA',
+              accentColor: const Color(0xFFEC4899),
+              delay: 400,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AIHomeScreen(),
+                ),
+              ),
+            ),
           ],
         ),
       ],
@@ -914,28 +923,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         return ClipRRect(
           borderRadius: BorderRadius.circular(20),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
             child: Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.white.withOpacity(0.1),
-                    Colors.white.withOpacity(0.05),
-                  ],
-                ),
                 borderRadius: BorderRadius.circular(20),
+                // Thin, subtle border (purple from stats theme)
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
+                  color: const Color(0xFF8B5CF6).withOpacity(0.35),
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 20,
-                    offset: const Offset(0, 5),
+                    color: const Color(0xFF8B5CF6).withOpacity(0.15),
+                    blurRadius: 15,
+                    offset: const Offset(0, 3),
+                    spreadRadius: -5,
                   ),
                 ],
               ),
@@ -1107,7 +1110,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               itemBuilder: (context, index) {
                 final goal = activeGoals[index];
                 final tasks = homeScreenProvider.getTasksForGoal(goal.id);
-                return GoalCard(goal: goal, index: index, tasks: tasks);
+                return GoalCard(
+                  goal: goal,
+                  index: index,
+                  tasks: tasks,
+                  useGlassEffect: true, // Apply glass effect only on HomeScreen
+                );
               },
             ),
           ],
@@ -1485,27 +1493,21 @@ class _AnimatedQuickActionCardState extends State<_AnimatedQuickActionCard>
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
                     child: Container(
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.white.withOpacity(0.15),
-                            Colors.white.withOpacity(0.05),
-                          ],
-                        ),
                         borderRadius: BorderRadius.circular(20),
+                        // Thin, subtle border with accent color
                         border: Border.all(
-                          color: widget.accentColor.withOpacity(0.3),
+                          color: widget.accentColor.withOpacity(0.35),
                           width: 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: widget.accentColor.withOpacity(_isPressed ? 0.2 : 0.3),
+                            color: widget.accentColor.withOpacity(_isPressed ? 0.1 : 0.15),
                             blurRadius: _isPressed ? 10 : 15,
-                            offset: Offset(0, _isPressed ? 3 : 8),
+                            offset: Offset(0, _isPressed ? 2 : 3),
+                            spreadRadius: -5,
                           ),
                         ],
                       ),
@@ -1577,12 +1579,20 @@ class _StatItem extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
             borderRadius: BorderRadius.circular(16),
+            // Thin, subtle border with stat color
             border: Border.all(
-              color: color.withOpacity(0.3),
-              width: 1,
+              color: color.withOpacity(0.35),
+              width: 1.5,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.15),
+                blurRadius: 15,
+                offset: const Offset(0, 3),
+                spreadRadius: -5,
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

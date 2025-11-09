@@ -7,6 +7,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // Core
 import 'core/config/env_config.dart';
@@ -35,16 +37,23 @@ import 'domain/usecases/task/delete_task_usecase.dart';
 import 'domain/usecases/task/toggle_task_usecase.dart';
 import 'domain/usecases/task/get_tasks_by_goal_usecase.dart';
 import 'domain/usecases/task/watch_tasks_by_goal_usecase.dart';
+import 'domain/usecases/ai/send_message_usecase.dart';
+import 'domain/usecases/ai/generate_insights_usecase.dart';
+import 'domain/usecases/ai/manage_api_key_usecase.dart';
+import 'domain/usecases/ai/analyze_spending_usecase.dart';
+import 'domain/usecases/ai/get_goal_recommendations_usecase.dart';
 
 // Data
 import 'data/datasources/auth_remote_datasource.dart';
 import 'data/datasources/transaction_remote_datasource.dart';
 import 'data/datasources/goal_remote_datasource.dart';
 import 'data/datasources/task_remote_datasource.dart';
+import 'data/datasources/ai_firestore_datasource.dart';
 import 'data/repositories/auth_repository_impl.dart';
 import 'data/repositories/transaction_repository_impl.dart';
 import 'data/repositories/goal_repository_impl.dart';
 import 'data/repositories/task_repository_impl.dart';
+import 'data/repositories/ai_repository_impl.dart';
 
 // Presentation
 import 'presentation/providers/auth_provider.dart';
@@ -55,9 +64,11 @@ import 'presentation/providers/dashboard_provider.dart';
 import 'presentation/providers/goals_screen_provider.dart';
 import 'presentation/providers/home_screen_provider.dart';
 import 'presentation/providers/widget_data_provider.dart';
+import 'presentation/providers/ai_assistant_provider.dart';
 
 // Services
 import 'core/services/home_widget_service.dart';
+import 'core/services/secure_storage_service.dart';
 import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/auth/register_screen.dart';
 import 'presentation/screens/auth/forgot_password_screen.dart';
@@ -130,11 +141,40 @@ void main() async {
   final goalDataSource = GoalRemoteDataSource(firestore: firestore);
   final taskDataSource = TaskRemoteDataSource(firestore: firestore);
 
+  // Initialize AI services
+  final dio = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
+      sendTimeout: const Duration(seconds: 30),
+    ),
+  );
+
+  const secureStorage = FlutterSecureStorage(
+    aOptions: AndroidOptions(
+      encryptedSharedPreferences: true,
+    ),
+    iOptions: IOSOptions(
+      accessibility: KeychainAccessibility.first_unlock,
+    ),
+  );
+
+  final secureStorageService = SecureStorageService(secureStorage);
+  final aiFirestoreDataSource = AIFirestoreDataSource(firestore);
+
   // Initialize repositories
   final authRepository = AuthRepositoryImpl(remoteDataSource: authDataSource);
   final transactionRepository = TransactionRepositoryImpl(remoteDataSource: transactionDataSource);
   final goalRepository = GoalRepositoryImpl(remoteDataSource: goalDataSource);
   final taskRepository = TaskRepositoryImpl(remoteDataSource: taskDataSource);
+
+  final aiRepository = AIRepositoryImpl(
+    secureStorage: secureStorageService,
+    firestoreDataSource: aiFirestoreDataSource,
+    transactionRepository: transactionRepository,
+    goalRepository: goalRepository,
+    dio: dio,
+  );
 
   // Initialize use cases - Auth
   final loginUseCase = LoginUseCase(authRepository);
@@ -164,6 +204,13 @@ void main() async {
   final toggleTaskUseCase = ToggleTaskUseCase(taskRepository);
   final getTasksByGoalUseCase = GetTasksByGoalUseCase(taskRepository);
   final watchTasksByGoalUseCase = WatchTasksByGoalUseCase(taskRepository);
+
+  // Initialize use cases - AI
+  final sendMessageUseCase = SendMessageUseCase(aiRepository);
+  final generateInsightsUseCase = GenerateInsightsUseCase(aiRepository);
+  final manageApiKeyUseCase = ManageApiKeyUseCase(aiRepository);
+  final analyzeSpendingUseCase = AnalyzeSpendingUseCase(aiRepository);
+  final getGoalRecommendationsUseCase = GetGoalRecommendationsUseCase(aiRepository);
 
   // Run the app with providers
   runApp(
@@ -285,6 +332,18 @@ void main() async {
           create: (_) => WidgetDataProvider(
             getTransactionsUseCase: getTransactionsUseCase,
             getGoalsUseCase: getGoalsUseCase,
+          ),
+        ),
+
+        // AI Assistant Provider
+        ChangeNotifierProvider<AIAssistantProvider>(
+          create: (_) => AIAssistantProvider(
+            sendMessageUseCase: sendMessageUseCase,
+            generateInsightsUseCase: generateInsightsUseCase,
+            manageApiKeyUseCase: manageApiKeyUseCase,
+            analyzeSpendingUseCase: analyzeSpendingUseCase,
+            getGoalRecommendationsUseCase: getGoalRecommendationsUseCase,
+            aiRepository: aiRepository,
           ),
         ),
       ],
