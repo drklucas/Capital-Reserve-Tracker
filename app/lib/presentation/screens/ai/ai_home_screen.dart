@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../domain/entities/ai_message_entity.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../../providers/ai_assistant_provider.dart';
+import '../../widgets/responsive/max_width_container.dart';
 import 'ai_insights_screen.dart';
 import 'ai_assistant_screen.dart';
 import 'ai_settings_screen.dart';
@@ -44,9 +46,18 @@ class _AIHomeScreenState extends State<AIHomeScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Assistente IA',
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: ResponsiveUtils.responsiveFontSize(
+              context,
+              mobile: 22,
+              tablet: 24,
+              desktop: 26,
+            ),
+            color: Colors.white,
+          ),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
@@ -90,23 +101,35 @@ class _AIHomeScreenState extends State<AIHomeScreen> {
               return RefreshIndicator(
                 onRefresh: _loadData,
                 color: const Color(0xFF5A67D8),
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                child: MaxWidthContainer(
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.all(
+                      ResponsiveUtils.valueByScreen(
+                        context: context,
+                        mobile: 16.0,
+                        tablet: 20.0,
+                        desktop: 24.0,
+                      ),
+                    ),
                     children: [
                       // Header
                       _buildHeader(context),
-                      const SizedBox(height: 24),
+                      SizedBox(
+                        height: ResponsiveUtils.getSpacing(context, multiplier: 3),
+                      ),
 
                       // Quick Actions
                       _buildQuickActions(context, provider),
-                      const SizedBox(height: 32),
+                      SizedBox(
+                        height: ResponsiveUtils.getSpacing(context, multiplier: 4),
+                      ),
 
                       // Insights Section
                       _buildInsightsSection(context, provider),
-                      const SizedBox(height: 32),
+                      SizedBox(
+                        height: ResponsiveUtils.getSpacing(context, multiplier: 4),
+                      ),
 
                       // Conversations Section
                       _buildConversationsSection(context, provider),
@@ -200,22 +223,35 @@ class _AIHomeScreenState extends State<AIHomeScreen> {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final titleFontSize = ResponsiveUtils.responsiveFontSize(
+      context,
+      mobile: 24.0,
+      tablet: 28.0,
+      desktop: 32.0,
+    );
+    final subtitleFontSize = ResponsiveUtils.responsiveFontSize(
+      context,
+      mobile: 14.0,
+      tablet: 16.0,
+      desktop: 18.0,
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           '🤖 Seu Assistente Financeiro',
           style: TextStyle(
-            fontSize: 28,
+            fontSize: titleFontSize,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: ResponsiveUtils.getSpacing(context)),
         Text(
           'Análises inteligentes e insights personalizados',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: subtitleFontSize,
             color: Colors.white.withOpacity(0.7),
           ),
         ),
