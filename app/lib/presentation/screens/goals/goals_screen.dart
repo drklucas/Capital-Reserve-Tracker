@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/goals_screen_provider.dart';
 import '../../../domain/entities/goal_entity.dart';
+import '../../../core/utils/responsive_utils.dart';
 import '../../widgets/goal_card.dart';
 import 'add_goal_screen.dart';
 import 'goal_detail_screen.dart';
@@ -39,11 +40,16 @@ class _GoalsScreenState extends State<GoalsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Minhas Metas',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 24,
+            fontSize: ResponsiveUtils.responsiveFontSize(
+              context,
+              mobile: 22,
+              tablet: 24,
+              desktop: 26,
+            ),
             color: Colors.white,
           ),
         ),
@@ -184,26 +190,30 @@ class _GoalsScreenState extends State<GoalsScreen> {
                   color: const Color(0xFF3B82F6),
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
+                    child: ResponsiveLayout(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(height: 20),
+                          SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2.5)),
 
                           // Summary Card - usando GoalsScreenProvider
                           _buildSummaryCard(goalsScreenProvider),
 
-                          const SizedBox(height: 24),
+                          SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 3)),
 
                           // Goals List Header
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text(
+                              Text(
                                 'Suas Metas',
                                 style: TextStyle(
-                                  fontSize: 22,
+                                  fontSize: ResponsiveUtils.responsiveFontSize(
+                                    context,
+                                    mobile: 20,
+                                    tablet: 22,
+                                    desktop: 24,
+                                  ),
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
@@ -211,33 +221,24 @@ class _GoalsScreenState extends State<GoalsScreen> {
                               Text(
                                 '${goalsScreenProvider.goals.length} ${goalsScreenProvider.goals.length == 1 ? 'meta' : 'metas'}',
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: ResponsiveUtils.responsiveFontSize(
+                                    context,
+                                    mobile: 13,
+                                    tablet: 14,
+                                    desktop: 15,
+                                  ),
                                   color: Colors.white.withOpacity(0.7),
                                 ),
                               ),
                             ],
                           ),
 
-                          const SizedBox(height: 16),
+                          SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2)),
 
-                          // Goals List
-                          ListView.separated(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: goalsScreenProvider.goals.length,
-                            separatorBuilder: (context, index) => const SizedBox(height: 12),
-                            itemBuilder: (context, index) {
-                              final goal = goalsScreenProvider.goals[index];
-                              final tasks = goalsScreenProvider.getTasksForGoal(goal.id);
-                              return GoalCard(
-                                goal: goal,
-                                index: index,
-                                tasks: tasks,
-                              );
-                            },
-                          ),
+                          // Goals Grid (instead of list for better responsive layout)
+                          _buildGoalsGrid(goalsScreenProvider),
 
-                          const SizedBox(height: 80), // Space for FAB
+                          SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 10)), // Space for FAB
                         ],
                       ),
                     ),
@@ -281,9 +282,44 @@ class _GoalsScreenState extends State<GoalsScreen> {
     );
   }
 
+  Widget _buildGoalsGrid(GoalsScreenProvider goalsScreenProvider) {
+    final columns = ResponsiveUtils.valueByScreen(
+      context: context,
+      mobile: 1,
+      tablet: 2,
+      desktop: 3,
+    );
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: columns,
+        crossAxisSpacing: ResponsiveUtils.getSpacing(context, multiplier: 2),
+        mainAxisSpacing: ResponsiveUtils.getSpacing(context, multiplier: 2),
+        childAspectRatio: ResponsiveUtils.valueByScreen(
+          context: context,
+          mobile: 1.0,
+          tablet: 0.95,
+          desktop: 0.9,
+        ),
+      ),
+      itemCount: goalsScreenProvider.goals.length,
+      itemBuilder: (context, index) {
+        final goal = goalsScreenProvider.goals[index];
+        final tasks = goalsScreenProvider.getTasksForGoal(goal.id);
+        return GoalCard(
+          goal: goal,
+          index: index,
+          tasks: tasks,
+        );
+      },
+    );
+  }
+
   Widget _buildSummaryCard(GoalsScreenProvider goalsScreenProvider) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: ResponsiveUtils.getCardPadding(context),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
@@ -293,7 +329,9 @@ class _GoalsScreenState extends State<GoalsScreen> {
             Color(0xFF1f2544),
           ],
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(
+          ResponsiveUtils.getBorderRadius(context),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.2),
@@ -305,15 +343,20 @@ class _GoalsScreenState extends State<GoalsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Resumo Geral',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: ResponsiveUtils.responsiveFontSize(
+                context,
+                mobile: 18,
+                tablet: 20,
+                desktop: 22,
+              ),
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 2.5)),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -351,27 +394,48 @@ class _GoalsScreenState extends State<GoalsScreen> {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.all(
+            ResponsiveUtils.getSpacing(context, multiplier: 1.5),
+          ),
           decoration: BoxDecoration(
             color: color.withOpacity(0.2),
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: color, size: 24),
+          child: Icon(
+            icon,
+            color: color,
+            size: ResponsiveUtils.valueByScreen(
+              context: context,
+              mobile: 22,
+              tablet: 24,
+              desktop: 26,
+            ),
+          ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: ResponsiveUtils.getSpacing(context)),
         Text(
           value,
           style: TextStyle(
-            fontSize: 18,
+            fontSize: ResponsiveUtils.responsiveFontSize(
+              context,
+              mobile: 16,
+              tablet: 18,
+              desktop: 20,
+            ),
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
-        const SizedBox(height: 4),
+        SizedBox(height: ResponsiveUtils.getSpacing(context, multiplier: 0.5)),
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,
+            fontSize: ResponsiveUtils.responsiveFontSize(
+              context,
+              mobile: 11,
+              tablet: 12,
+              desktop: 13,
+            ),
             color: Colors.white.withOpacity(0.7),
           ),
         ),
