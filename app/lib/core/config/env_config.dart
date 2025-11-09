@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Environment configuration manager
@@ -11,7 +12,15 @@ class EnvConfig {
   /// Initialize environment configuration
   /// Must be called before accessing any environment variables
   static Future<void> initialize() async {
-    await dotenv.load(fileName: '.env');
+    // Skip .env loading on web - use firebase_options.dart instead
+    if (kIsWeb) {
+      return;
+    }
+    try {
+      await dotenv.load(fileName: '.env');
+    } catch (e) {
+      print('Warning: Could not load .env file: $e');
+    }
   }
 
   /// Firebase configuration
@@ -70,6 +79,11 @@ class EnvConfig {
 
   /// Validate required environment variables
   static bool validateConfig() {
+    // On web, Firebase config is managed by firebase_options.dart
+    if (kIsWeb) {
+      return true;
+    }
+
     final requiredVars = [
       'FIREBASE_PROJECT_ID',
       'FIREBASE_API_KEY',
@@ -98,6 +112,14 @@ class EnvConfig {
 
   /// Log configuration (only in debug mode)
   static void logConfiguration() {
+    // Skip logging on web or if dotenv is not initialized
+    if (kIsWeb) {
+      print('=== Environment Configuration (Web) ===');
+      print('Firebase config managed by firebase_options.dart');
+      print('======================================');
+      return;
+    }
+
     if (!isDebugMode) return;
 
     print('=== Environment Configuration ===');

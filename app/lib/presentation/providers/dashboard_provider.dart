@@ -169,8 +169,21 @@ class DashboardProvider extends ChangeNotifier {
 
   /// Update transactions data (still accepts external transaction data)
   void updateTransactions(List<TransactionEntity> transactions) {
-    _transactions = transactions;
-    notifyListeners();
+    // Only update and notify if transactions actually changed
+    if (_transactions.length != transactions.length ||
+        !_areTransactionsEqual(_transactions, transactions)) {
+      _transactions = transactions;
+      notifyListeners();
+    }
+  }
+
+  /// Check if two transaction lists are equal
+  bool _areTransactionsEqual(List<TransactionEntity> list1, List<TransactionEntity> list2) {
+    if (list1.length != list2.length) return false;
+    for (int i = 0; i < list1.length; i++) {
+      if (list1[i].id != list2[i].id) return false;
+    }
+    return true;
   }
 
   @override
@@ -642,4 +655,237 @@ class DashboardProvider extends ChangeNotifier {
         completedGoals.fold(0, (sum, g) => sum + g.daysElapsed);
     return totalDays / completedGoals.length;
   }
+
+  // ==================== SPENDING ANALYSIS METHODS ====================
+
+  /// Get spending by category for expenses only
+  /// Returns data sorted by amount (highest first)
+  List<CategorySpendingData> getCategorySpending({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    // Filter transactions
+    final filteredTransactions = _transactions.where((t) {
+      if (!t.isExpense) return false;
+      if (startDate != null && t.date.isBefore(startDate)) return false;
+      if (endDate != null && t.date.isAfter(endDate)) return false;
+      return true;
+    }).toList();
+
+    if (filteredTransactions.isEmpty) return [];
+
+    // Group by category
+    final Map<TransactionCategory, List<TransactionEntity>> categoryGroups = {};
+    for (var transaction in filteredTransactions) {
+      categoryGroups.putIfAbsent(transaction.category, () => []).add(transaction);
+    }
+
+    // Calculate total for percentage
+    final totalAmount = filteredTransactions.fold(0.0, (sum, t) => sum + t.amount);
+
+    // Convert to CategorySpendingData
+    final data = categoryGroups.entries.map((entry) {
+      final amount = entry.value.fold(0.0, (sum, t) => sum + t.amount);
+      final percentage = (amount / totalAmount) * 100;
+      return CategorySpendingData(
+        category: entry.key,
+        amount: amount,
+        percentage: percentage,
+        transactionCount: entry.value.length,
+      );
+    }).toList();
+
+    // Sort by amount (highest first)
+    data.sort((a, b) => b.amount.compareTo(a.amount));
+
+    return data;
+  }
+
+  /// Get hourly spending distribution (expenses only)
+  /// Returns data for all 24 hours, with 0 for hours with no transactions
+  List<HourlySpendingData> getHourlySpending({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    // Filter expense transactions
+    final filteredTransactions = _transactions.where((t) {
+      if (!t.isExpense) return false;
+      if (startDate != null && t.date.isBefore(startDate)) return false;
+      if (endDate != null && t.date.isAfter(endDate)) return false;
+      return true;
+    }).toList();
+
+    // Initialize data for all 24 hours
+    final Map<int, List<TransactionEntity>> hourlyGroups = {};
+    for (int hour = 0; hour < 24; hour++) {
+      hourlyGroups[hour] = [];
+    }
+
+    // Group transactions by hour
+    for (var transaction in filteredTransactions) {
+      final hour = transaction.date.hour;
+      hourlyGroups[hour]!.add(transaction);
+    }
+
+    // Convert to HourlySpendingData
+    return hourlyGroups.entries.map((entry) {
+      final amount = entry.value.fold(0.0, (sum, t) => sum + t.amount);
+      return HourlySpendingData(
+        hour: entry.key,
+        amount: amount,
+        transactionCount: entry.value.length,
+      );
+    }).toList()..sort((a, b) => a.hour.compareTo(b.hour));
+  }
+
+  /// Get daily spending pattern (by day of week)
+  /// Returns data for all 7 days of the week
+  List<DailySpendingPatternData> getDailySpendingPattern({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    // Filter expense transactions
+    final filteredTransactions = _transactions.where((t) {
+      if (!t.isExpense) return false;
+      if (startDate != null && t.date.isBefore(startDate)) return false;
+      if (endDate != null && t.date.isAfter(endDate)) return false;
+      return true;
+    }).toList();
+
+    // Initialize data for all 7 days (1=Monday to 7=Sunday)
+    final Map<int, List<TransactionEntity>> dailyGroups = {};
+    for (int day = 1; day <= 7; day++) {
+      dailyGroups[day] = [];
+    }
+
+    // Group transactions by day of week
+    for (var transaction in filteredTransactions) {
+      final dayOfWeek = transaction.date.weekday; // 1=Monday, 7=Sunday
+      dailyGroups[dayOfWeek]!.add(transaction);
+    }
+
+    // Convert to DailySpendingPatternData
+    return dailyGroups.entries.map((entry) {
+      final amount = entry.value.fold(0.0, (sum, t) => sum + t.amount);
+      return DailySpendingPatternData(
+        dayOfWeek: entry.key,
+        amount: amount,
+        transactionCount: entry.value.length,
+      );
+    }).toList()..sort((a, b) => a.dayOfWeek.compareTo(b.dayOfWeek));
+  }
+
+  /// Get value range distribution for expenses
+  /// Automatically creates ranges based on data distribution
+  List<ValueRangeData> getValueRangeDistribution({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) {
+    // Filter expense transactions
+    final filteredTransactions = _transactions.where((t) {
+      if (!t.isExpense) return false;
+      if (startDate != null && t.date.isBefore(startDate)) return false;
+      if (endDate != null && t.date.isAfter(endDate)) return false;
+      return true;
+    }).toList();
+
+    if (filteredTransactions.isEmpty) return [];
+
+    // Define value ranges (in BRL)
+    final ranges = [
+      {'min': 0.0, 'max': 50.0, 'label': 'R\$ 0-50'},
+      {'min': 50.0, 'max': 100.0, 'label': 'R\$ 50-100'},
+      {'min': 100.0, 'max': 200.0, 'label': 'R\$ 100-200'},
+      {'min': 200.0, 'max': 500.0, 'label': 'R\$ 200-500'},
+      {'min': 500.0, 'max': 1000.0, 'label': 'R\$ 500-1K'},
+      {'min': 1000.0, 'max': double.infinity, 'label': 'R\$ 1K+'},
+    ];
+
+    // Group transactions by range
+    final rangeData = <ValueRangeData>[];
+    for (var range in ranges) {
+      final min = range['min'] as double;
+      final max = range['max'] as double;
+      final label = range['label'] as String;
+
+      final rangeTransactions = filteredTransactions.where((t) {
+        return t.amount >= min && t.amount < max;
+      }).toList();
+
+      if (rangeTransactions.isNotEmpty) {
+        final totalAmount = rangeTransactions.fold(0.0, (sum, t) => sum + t.amount);
+        rangeData.add(
+          ValueRangeData(
+            range: label,
+            minValue: min,
+            maxValue: max == double.infinity ? rangeTransactions.map((t) => t.amount).reduce((a, b) => a > b ? a : b) : max,
+            transactionCount: rangeTransactions.length,
+            totalAmount: totalAmount,
+          ),
+        );
+      }
+    }
+
+    return rangeData;
+  }
+}
+
+// ==================== DATA MODELS FOR CHARTS ====================
+
+/// Category spending data model
+class CategorySpendingData {
+  final TransactionCategory category;
+  final double amount;
+  final double percentage;
+  final int transactionCount;
+
+  const CategorySpendingData({
+    required this.category,
+    required this.amount,
+    required this.percentage,
+    required this.transactionCount,
+  });
+}
+
+/// Hourly spending data model
+class HourlySpendingData {
+  final int hour; // 0-23
+  final double amount;
+  final int transactionCount;
+
+  const HourlySpendingData({
+    required this.hour,
+    required this.amount,
+    required this.transactionCount,
+  });
+}
+
+/// Daily spending pattern data model
+class DailySpendingPatternData {
+  final int dayOfWeek; // 1 (Monday) - 7 (Sunday)
+  final double amount;
+  final int transactionCount;
+
+  const DailySpendingPatternData({
+    required this.dayOfWeek,
+    required this.amount,
+    required this.transactionCount,
+  });
+}
+
+/// Value range data model
+class ValueRangeData {
+  final String range; // e.g., "R\$ 0-50"
+  final double minValue;
+  final double maxValue;
+  final int transactionCount;
+  final double totalAmount;
+
+  const ValueRangeData({
+    required this.range,
+    required this.minValue,
+    required this.maxValue,
+    required this.transactionCount,
+    required this.totalAmount,
+  });
 }

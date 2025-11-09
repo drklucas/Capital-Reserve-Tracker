@@ -47,6 +47,9 @@ class _CategorySpendingChartState extends State<CategorySpendingChart> {
       }
     }
 
+    // Determine if we're on web/desktop based on screen width
+    final isWideScreen = MediaQuery.of(context).size.width > 600;
+
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -84,13 +87,16 @@ class _CategorySpendingChartState extends State<CategorySpendingChart> {
               ),
             ),
             const SizedBox(height: 24),
-            Row(
-              children: [
-                // Pie Chart
-                Expanded(
-                  flex: 3,
-                  child: AspectRatio(
-                    aspectRatio: 1,
+            // Use LayoutBuilder to control the total height
+            SizedBox(
+              height: isWideScreen ? 350 : 300,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Pie Chart - constrained size
+                  SizedBox(
+                    width: isWideScreen ? 280 : 200,
+                    height: isWideScreen ? 280 : 200,
                     child: PieChart(
                       PieChartData(
                         pieTouchData: PieTouchData(
@@ -107,20 +113,19 @@ class _CategorySpendingChartState extends State<CategorySpendingChart> {
                           },
                         ),
                         borderData: FlBorderData(show: false),
-                        sectionsSpace: 1,
-                        centerSpaceRadius: 60,
+                        sectionsSpace: 2,
+                        centerSpaceRadius: isWideScreen ? 70 : 60,
                         sections: _getSections(topCategories, othersAmount, othersCount, hasOthers),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 20),
-                // Legend
-                Expanded(
-                  flex: 2,
-                  child: _buildLegend(topCategories, othersAmount, hasOthers),
-                ),
-              ],
+                  const SizedBox(width: 24),
+                  // Legend - takes remaining space
+                  Expanded(
+                    child: _buildLegend(topCategories, othersAmount, hasOthers),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -135,11 +140,16 @@ class _CategorySpendingChartState extends State<CategorySpendingChart> {
     bool hasOthers,
   ) {
     final sections = <PieChartSectionData>[];
+    final isWideScreen = MediaQuery.of(context).size.width > 600;
+
+    // Adjust radius based on screen size
+    final baseRadius = isWideScreen ? 65.0 : 45.0;
+    final touchRadius = isWideScreen ? 72.0 : 50.0;
 
     for (int i = 0; i < topCategories.length; i++) {
       final isTouched = i == touchedIndex;
-      final radius = isTouched ? 50.0 : 45.0;
-      final fontSize = isTouched ? 14.0 : 12.0;
+      final radius = isTouched ? touchRadius : baseRadius;
+      final fontSize = isTouched ? 15.0 : 13.0;
 
       sections.add(
         PieChartSectionData(
@@ -161,8 +171,8 @@ class _CategorySpendingChartState extends State<CategorySpendingChart> {
       final totalAmount = widget.data.fold(0.0, (sum, d) => sum + d.amount);
       final othersPercentage = (othersAmount / totalAmount) * 100;
       final isTouched = topCategories.length == touchedIndex;
-      final radius = isTouched ? 50.0 : 45.0;
-      final fontSize = isTouched ? 14.0 : 12.0;
+      final radius = isTouched ? touchRadius : baseRadius;
+      final fontSize = isTouched ? 15.0 : 13.0;
 
       sections.add(
         PieChartSectionData(
